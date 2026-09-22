@@ -1,0 +1,55 @@
+{{@layout "blank"}}
+{{@var title "Sign up"}}
+
+<div class="w-full max-w-sm">
+  <div class="card p-8">
+    <a href="index.html" class="flex items-center gap-2.5">
+      <span class="flex size-9 items-center justify-center rounded-xl bg-primary-600 text-white" x-html="$icon('dashboard', 'size-5')" aria-hidden="true"></span>
+      <span class="text-lg font-bold tracking-tight text-slate-900 dark:text-white" x-text="d.site.name"></span>
+    </a>
+
+    <h1 class="mt-7 auth-title" x-text="$t(d.pages.auth.signup.heading)"></h1>
+    <p class="mt-1.5 text-sm text-slate-500 dark:text-slate-400" x-text="$t(d.pages.auth.signup.sub)"></p>
+
+    <form action="index.html" method="get" class="mt-6 space-y-4" x-data="auth('signup')" @submit="submit">
+      <div>
+        <label for="name" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300" x-text="$t('fullNameLabel')"></label>
+        <input id="name" name="name" type="text" autocomplete="name" required class="input" :placeholder="$t('Maria Carter')" />
+      </div>
+      <div>
+        <label for="email" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300" x-text="$t('emailLabel')"></label>
+        <input id="email" name="email" type="email" autocomplete="email" required class="input" :placeholder="$t('you@company.com')" />
+      </div>
+      <div>
+        <label for="password" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300" x-text="$t('passwordLabel')"></label>
+        <input id="password" name="password" type="password" autocomplete="new-password" required minlength="8" class="input" placeholder="8+ characters" />
+      </div>
+
+      <label class="flex cursor-pointer items-start gap-2.5 text-sm text-slate-600 dark:text-slate-300">
+        <input type="checkbox" name="terms" required class="peer sr-only" />
+        <span
+          class="check mt-0.5"
+          aria-hidden="true"
+          x-html="$icon('checkPlain', 'size-3.5', 'bold')"
+        ></span>
+        <span>
+          <span x-text="$t('agreeTo')"></span>
+          <a href="#" class="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300" x-text="$t('termsOfService')"></a>
+          <span x-text="$t('andWord')"></span>
+          <a href="#" class="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300" x-text="$t('privacyPolicy')"></a>
+        </span>
+      </label>
+
+      <template x-if="error">
+        <p role="alert" class="text-sm font-medium text-rose-600 dark:text-rose-400" x-text="error"></p>
+      </template>
+
+      <button type="submit" class="btn btn-primary w-full justify-center" :disabled="pending" x-text="$t('createAccount')"></button>
+    </form>
+  </div>
+
+  <p class="mt-6 text-center text-sm text-slate-500 dark:text-slate-400">
+    <span x-text="$t('hasAccount')"></span>
+    <a href="signin.html" class="font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300" x-text="$t('signIn')"></a>
+  </p>
+</div>

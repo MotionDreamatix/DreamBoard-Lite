@@ -1,0 +1,190 @@
+{{@layout "base"}}
+{{@var title "Form Layouts"}}
+{{@var phH "d.pages.forms.heading"}}
+{{@var phS "d.pages.forms.sub"}}
+
+<div class="page-head">
+  {{> components/page-heading}}
+</div>
+
+<div class="grid gap-4 xl:grid-cols-2">
+  <!-- ── Stacked ──────────────────────────────────────────────────── -->
+  <section class="card p-6" aria-labelledby="forms-stacked-title">
+    <h2 id="forms-stacked-title" class="card-title" x-text="$t('Stacked')"></h2>
+    <p class="card-sub" x-text="$t('A simple vertical form — labels above inputs, one column.')"></p>
+    <form class="mt-5 space-y-4" @submit.prevent="$store.toasts.push({ title: $t('toastDemoAction'), variant: 'success' })">
+      <template x-for="f in d.pages.forms.stackedFields" :key="f.id">
+        <div>
+          <label :for="f.id" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+            <span x-text="$t(f.label)"></span>
+            <span x-show="f.required" class="text-rose-500" aria-hidden="true"> *</span>
+          </label>
+          <input
+            :id="f.id"
+            :name="f.id"
+            :type="f.type"
+            :autocomplete="f.autocomplete ?? null"
+            :required="f.required"
+            :value="f.value"
+            class="input"
+          />
+        </div>
+      </template>
+      <button type="submit" class="btn btn-primary" x-text="$t('Submit')"></button>
+    </form>
+  </section>
+
+  <!-- ── Two-column ───────────────────────────────────────────────── -->
+  <section class="card p-6" aria-labelledby="forms-grid-title">
+    <h2 id="forms-grid-title" class="card-title" x-text="$t('Two-column')"></h2>
+    <p class="card-sub" x-text="$t('Two columns on desktop, stacking on mobile.')"></p>
+    <form class="mt-5" @submit.prevent="$store.toasts.push({ title: $t('toastDemoAction'), variant: 'success' })">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <template x-for="f in d.pages.forms.gridFields" :key="f.id">
+          <div>
+            <label :for="f.id" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+              <span x-text="$t(f.label)"></span>
+              <span x-show="f.required" class="text-rose-500" aria-hidden="true"> *</span>
+            </label>
+            <input
+              :id="f.id"
+              :name="f.id"
+              :type="f.type"
+              :autocomplete="f.autocomplete ?? null"
+              :required="f.required"
+              :value="f.value"
+              class="input"
+            />
+          </div>
+        </template>
+      </div>
+      <button type="submit" class="btn btn-primary mt-5" x-text="$t('Save changes')"></button>
+    </form>
+  </section>
+
+  <!-- ── Validation states ────────────────────────────────────────── -->
+  <section class="card p-6" aria-labelledby="forms-states-title">
+    <h2 id="forms-states-title" class="card-title" x-text="$t('Validation states')"></h2>
+    <p class="card-sub" x-text="$t('Inputs communicate state via border color, hint text and aria attributes.')"></p>
+    <div class="mt-5 space-y-4">
+      <template x-for="f in d.pages.forms.states" :key="f.id">
+        <div>
+          <label :for="f.id" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200" x-text="$t(f.label)"></label>
+          <!-- WCAG: aria-invalid flags the error, aria-describedby links the hint -->
+          <input
+            :id="f.id"
+            :name="f.id"
+            type="text"
+            :value="f.value"
+            :disabled="f.state === 'disabled'"
+            :aria-invalid="f.state === 'error' ? 'true' : null"
+            :aria-describedby="f.id + '-hint'"
+            class="input"
+            :class="inputState(f.state)"
+          />
+          <p :id="f.id + '-hint'" class="mt-1.5 text-xs" :class="hintState(f.state)" x-text="$t(f.hint)"></p>
+        </div>
+      </template>
+    </div>
+  </section>
+
+  <!-- ── Wizard ───────────────────────────────────────────────────── -->
+  <section class="card p-6" aria-labelledby="forms-wizard-title" x-data="wizard(d.pages.forms.wizardSteps)">
+    <h2 id="forms-wizard-title" class="card-title" x-text="$t('Wizard')"></h2>
+    <p class="card-sub" x-text="$t('Multi-step flow with native validation before advancing.')"></p>
+
+    <!-- Stepper — completed/visited steps are jumpable, current is aria-current="step" -->
+    <nav class="mt-5" :aria-label="$t('stepOf', { n: step + 1, total: steps.length })">
+      <ol class="flex items-center gap-2">
+        <template x-for="(s, i) in steps" :key="s.title">
+          <li class="flex min-w-0 flex-1 items-center gap-2">
+            <button
+              type="button"
+              class="flex min-w-0 items-center gap-2.5 rounded-lg py-1 pr-1 text-left transition-colors duration-200 motion-reduce:transition-none disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="!(i <= step || done.includes(i))"
+              :aria-current="step === i ? 'step' : null"
+              @click="goto(i)"
+            >
+              <span
+                class="flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                :class="done.includes(i)
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400'
+                  : step === i
+                    ? 'bg-primary-600 text-white'
+                    : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'"
+              >
+                <span x-show="done.includes(i)" x-html="$icon('checkPlain', 'size-3.5', 'bold')" aria-hidden="true"></span>
+                <span x-show="!done.includes(i)" x-text="i + 1"></span>
+              </span>
+              <span class="hidden min-w-0 sm:block">
+                <span class="block truncate text-sm font-semibold" :class="step === i ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300'" x-text="$t(s.title)"></span>
+                <span class="block truncate text-xs text-slate-500 dark:text-slate-400" x-text="$t(s.desc)"></span>
+              </span>
+            </button>
+            <span
+              x-show="i < last"
+              class="h-px min-w-4 flex-1"
+              :class="done.includes(i) ? 'bg-emerald-400' : 'bg-slate-200 dark:bg-slate-700'"
+              aria-hidden="true"
+            ></span>
+          </li>
+        </template>
+      </ol>
+    </nav>
+
+    <!-- Step panels -->
+    <form class="mt-6" @submit.prevent="$store.toasts.push({ title: $t('toastDemoAction'), variant: 'success' })">
+      <template x-for="(s, i) in steps" :key="s.title">
+        <div :data-step="i" x-show="step === i" role="group" :aria-label="$t(s.title)">
+          <template x-if="i < last">
+            <div class="grid gap-4 sm:grid-cols-2">
+              <template x-for="f in d.pages.forms.wizardFields[i]" :key="f.id">
+                <div>
+                  <label :for="f.id" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                    <span x-text="$t(f.label)"></span>
+                    <span x-show="f.required" class="text-rose-500" aria-hidden="true"> *</span>
+                  </label>
+                  <input
+                    :id="f.id"
+                    :name="f.id"
+                    :type="f.type"
+                    :autocomplete="f.autocomplete ?? null"
+                    :required="f.required"
+                    class="input"
+                  />
+                </div>
+              </template>
+            </div>
+          </template>
+          <template x-if="i === last">
+            <p class="text-sm text-slate-600 dark:text-slate-300" x-text="$t('Review your details and finish setup.')"></p>
+          </template>
+        </div>
+      </template>
+
+      <div class="mt-6 flex items-center justify-between border-t border-slate-200 pt-4 dark:border-slate-800">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          :disabled="step === 0"
+          @click="prev()"
+          x-text="$t('prevStep')"
+        ></button>
+        <button
+          x-show="step < last"
+          type="button"
+          class="btn btn-primary"
+          @click="next()"
+          x-text="$t('nextStep')"
+        ></button>
+        <button
+          x-show="step === last"
+          x-cloak
+          type="submit"
+          class="btn btn-primary"
+          x-text="$t('createAccount')"
+        ></button>
+      </div>
+    </form>
+  </section>
+</div>

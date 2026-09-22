@@ -1,0 +1,457 @@
+@import "tailwindcss";
+
+/* Shared kit tokens — accent scale, fonts, ambient shadows, dark variant */
+@import "@dreamboard/tailwind-config";
+
+/* Inter (variable) — vendored locally by the build script, no CDN needed. */
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("../fonts/inter-latin-wght-normal.woff2") format("woff2");
+}
+
+@layer base {
+  html {
+    @apply scroll-smooth motion-reduce:scroll-auto;
+  }
+
+  body {
+    @apply bg-slate-50 font-sans text-slate-800 antialiased dark:bg-slate-900 dark:text-slate-100;
+  }
+
+  /* Consistent, high-contrast focus ring everywhere (WCAG 2.4.7/2.4.13). */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
+  }
+
+  /* Pointer affordance on every clickable control — Tailwind v4's
+     preflight no longer sets cursor:pointer on buttons. */
+  button:not(:disabled),
+  [role="button"],
+  [role="tab"],
+  [role="switch"],
+  [role="menuitem"],
+  select,
+  summary,
+  input:is([type="checkbox"], [type="radio"], [type="range"]) {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  /* Compact density — every Tailwind utility is rem-based, so a smaller
+     root size tightens padding, gaps and type uniformly (~6%). The
+     attribute is set pre-paint by the layouts' inline script. */
+  html[data-density="compact"] {
+    font-size: 15px;
+  }
+
+  /* Slim, theme-matched scrollbars everywhere — page, sidebar, table
+     overflow areas. Firefox gets scrollbar-*; WebKit the pseudo rules.
+     The transparent track + padding-box border makes the thumb float. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-slate-300) transparent;
+  }
+  .dark * {
+    scrollbar-color: var(--color-slate-600) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-color: var(--color-slate-300);
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-slate-400);
+  }
+  .dark ::-webkit-scrollbar-thumb {
+    background-color: var(--color-slate-600);
+  }
+  .dark ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-slate-500);
+  }
+}
+
+/* Alpine cloak — hides un-rendered templates until Alpine boots. */
+[x-cloak] {
+  display: none !important;
+}
+
+@layer components {
+  /* Reusable card surface — soft border + ambient shadow. */
+  .card {
+    /* min-w-0: grid/flex items default to min-width:auto — a fixed-width
+       chart SVG inside would pin the track wide during the rail
+       transition and overflow the layout. */
+    @apply min-w-0 rounded-2xl border border-slate-200/60 bg-white shadow-card dark:border-slate-800/60 dark:bg-slate-900/60;
+  }
+
+  /* Floating panels (dropdowns, select listbox, modal) — solid surfaces:
+     unlike .card they must stay opaque in dark mode. */
+  .menu-panel {
+    @apply rounded-2xl border border-slate-200/60 bg-white shadow-soft dark:border-slate-800/60 dark:bg-slate-900;
+  }
+
+  /* Sidebar/footer link base — also used by dropdown menu items.
+     text-left: <button> defaults to text-align:center which would
+     otherwise center the flex-1 label inside its box. whitespace-nowrap
+     keeps labels from wrapping while the sidebar width animates (the
+     nav's overflow-x-clip hides the overflow mid-transition). */
+  .menu-item {
+    @apply flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-900 motion-reduce:transition-none dark:text-slate-400 dark:hover:bg-slate-800/60 dark:hover:text-slate-100;
+    /* Padding/gap animate alongside colors so the rail toggle glides
+       (icons ease into center instead of snapping mid-transition). */
+    transition-property: color, background-color, padding, gap;
+  }
+
+  /* Active nav state — defined after .menu-item so equal-specificity
+     overrides (incl. hover) win. Add alongside .menu-item. */
+  .menu-item-active {
+    @apply bg-primary-50 text-primary-700 hover:bg-primary-50 hover:text-primary-700 dark:bg-primary-500/10 dark:text-primary-300 dark:hover:bg-primary-500/15 dark:hover:text-primary-200;
+  }
+
+  /* Duotone second-tone recolor: Phosphor duotone SVGs mark the fill
+     layer with opacity="0.2"; repaint the solid outline layer with the
+     accent color so icons mix accent (outline) + currentColor (fill). */
+  .icon-duotone-accent svg path:not([opacity]) {
+    fill: var(--color-primary-500);
+  }
+  .icon-duotone-accent svg path[opacity] {
+    opacity: 0.12;
+  }
+
+  /* Sidebar accordion microanimation — the grid-rows trick animates
+     height without measuring (snappy 180ms, no JS layout reads). The
+     closed state stays in the DOM but is collapsed to 0fr; callers add
+     `inert` so its links leave the tab order. */
+  .nav-acc {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition:
+      grid-template-rows 180ms ease-out,
+      opacity 150ms ease-out;
+  }
+  .nav-acc.nav-acc-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+  }
+  .nav-acc > * {
+    min-height: 0;
+    overflow: hidden;
+    transform: translateY(-2px);
+    transition: transform 180ms ease-out;
+  }
+  .nav-acc.nav-acc-open > * {
+    transform: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-acc,
+    .nav-acc > * {
+      transition: none;
+    }
+  }
+
+  /* Live chart leading-edge dot — the newest sample carries the only
+     marker; its stroke is primary, and the animation expands the
+     stroke-width outward while fading → a sonar-style ripple ring at
+     the end of the line (like live stock tickers). Charts opt in via
+     .live-chart on the mount element; marker is an SVG circle, so
+     transform-box keeps the pulse centered on the dot. */
+  .live-chart .apexcharts-marker:not([default-marker-size="0"]) {
+    transform-box: fill-box;
+    transform-origin: center;
+    filter: drop-shadow(0 0 6px var(--color-primary-400));
+    animation: live-dot-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  /* Apex clips markers to the grid rect — the leading-endpoint dot sits
+     on the chart's right edge, so the ripple would render half-cut.
+     Release the clip (CSS beats the clip-path presentation attribute)
+     and let the svg itself overflow so the glow isn't hard-clipped. */
+  .live-chart .apexcharts-series-markers-wrap {
+    clip-path: none;
+  }
+  .live-chart svg {
+    overflow: visible;
+  }
+  @keyframes live-dot-ping {
+    0% {
+      stroke-width: 2px;
+      stroke-opacity: 0.9;
+      transform: scale(1);
+    }
+    70% {
+      stroke-width: 12px;
+      stroke-opacity: 0;
+      transform: scale(1);
+    }
+    100% {
+      stroke-width: 12px;
+      stroke-opacity: 0;
+      transform: scale(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .live-chart .apexcharts-marker:not([default-marker-size="0"]) {
+      animation: none;
+    }
+  }
+
+  /* World-map marker ping — scale+fade on an SVG circle requires
+     transform-box so the transform origin is the dot, not the canvas. */
+  /* Styleguide TOC anchor targets — clear the sticky app header. */
+[id^="cmp-"] {
+  scroll-margin-top: 5.5rem;
+}
+
+.map-pulse {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: map-pulse 2.2s ease-out infinite;
+    opacity: 0.55;
+  }
+  @keyframes map-pulse {
+    0% {
+      transform: scale(0.4);
+      opacity: 0.55;
+    }
+    70% {
+      opacity: 0.12;
+    }
+    100% {
+      transform: scale(1.8);
+      opacity: 0;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .map-pulse {
+      animation: none;
+      opacity: 0.3;
+    }
+  }
+
+  /* Sidebar rail transition: Apex refits a few frames behind the
+     container animation and .apexcharts-canvas takes the SVG's width,
+     so the mount element is the overflow point. Clip mounts only while
+     `rail-anim` is on <html> — edge-overflowing tooltips stay
+     unaffected outside the transition. */
+  .rail-anim div:has(> .apexcharts-canvas) {
+    overflow: hidden;
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder-slate-500 transition-colors duration-200 focus:border-primary-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder-slate-400;
+  }
+
+  /* Native <input type="color"> rendered as a flat circular swatch —
+     strips the UA swatch-wrapper padding (the "invisible space" around
+     the color well). Pair with size-* + rounded-full + ring utilities
+     so it matches the preset accent swatches. */
+  .color-swatch {
+    appearance: none;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  .color-swatch::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+  .color-swatch::-webkit-color-swatch {
+    border: none;
+    border-radius: 9999px;
+  }
+  .color-swatch::-moz-color-swatch {
+    border: none;
+    border-radius: 9999px;
+  }
+
+  /* Page heading block — flex row so trailing action buttons sit right. */
+  .page-head {
+    @apply mb-6 flex flex-wrap items-center justify-between gap-3;
+  }
+  .page-title {
+    @apply text-2xl font-bold tracking-tight text-slate-900 dark:text-white;
+  }
+  .page-sub {
+    @apply mt-1 text-sm text-slate-500 dark:text-slate-400;
+  }
+
+  /* Blank-layout (auth/utility) page title. */
+  .auth-title {
+    @apply text-xl font-bold tracking-tight text-slate-900 dark:text-white;
+  }
+
+  /* Card section header — bordered row; safe with a single child
+     (title-only headers) since justify-between just left-aligns it. */
+  .card-head {
+    @apply flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 p-5 pb-4 dark:border-slate-800;
+  }
+  .card-title {
+    @apply text-base font-semibold tracking-tight text-slate-900 dark:text-white;
+  }
+  .card-sub {
+    @apply mt-1 text-sm text-slate-500 dark:text-slate-400;
+  }
+
+  /* Data-table conventions */
+  .th-row {
+    @apply border-b border-slate-200 text-xs font-semibold tracking-wider text-slate-500 uppercase dark:border-slate-800 dark:text-slate-400;
+  }
+  .th-sort {
+    @apply inline-flex cursor-pointer items-center gap-1 text-xs font-semibold tracking-wider text-slate-500 uppercase transition-colors duration-200 hover:text-slate-800 motion-reduce:transition-none dark:text-slate-400 dark:hover:text-slate-200;
+  }
+
+  /* Custom checkbox tile — visual box paired with a `peer sr-only`
+     native input; check glyph fades in via peer-checked. */
+  .check {
+    @apply flex size-4.5 items-center justify-center rounded-[5px] border border-slate-300 bg-transparent text-transparent transition-colors duration-150 hover:border-slate-400 peer-checked:border-primary-600 peer-checked:text-primary-600 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-white motion-reduce:transition-none dark:border-slate-600 dark:text-transparent dark:hover:border-slate-500 dark:peer-checked:border-primary-400 dark:peer-checked:text-primary-400 dark:peer-focus-visible:ring-offset-slate-900;
+  }
+
+  /* Sticky table column — pair with [--sticky-x:Nrem] to chain multiple
+     columns; needs an opaque surface so scrolled rows don't show through. */
+  .sticky-col {
+    position: sticky;
+    inset-inline-start: var(--sticky-x, 0px);
+    z-index: 1;
+    background-color: var(--color-white);
+  }
+  .dark .sticky-col {
+    background-color: var(--color-slate-900);
+  }
+  tr:hover > .sticky-col {
+    background-color: var(--color-slate-50);
+  }
+  .dark tr:hover > .sticky-col {
+    background-color: var(--color-slate-800);
+  }
+  tr.row-selected > .sticky-col {
+    background-color: color-mix(in oklab, var(--color-primary-50) 40%, var(--color-white));
+  }
+  .dark tr.row-selected > .sticky-col {
+    background-color: color-mix(in oklab, var(--color-primary-500) 5%, var(--color-slate-900));
+  }
+
+  /* Expandable-row tables — each item renders its own <tbody> (x-for
+     needs a single root), so dividers sit between adjacent row groups. */
+  .table-expand > tbody + tbody {
+    border-top: 1px solid var(--color-slate-200);
+  }
+  .dark .table-expand > tbody + tbody {
+    border-top-color: var(--color-slate-800);
+  }
+
+  /* Bulk-actions bar above a table when rows are selected. */
+  .bulk-bar {
+    @apply flex items-center gap-3 border-b border-slate-200 bg-primary-50/50 px-5 py-2.5 dark:border-slate-800 dark:bg-primary-500/10;
+  }
+
+  /* Range slider — styled native input[type=range]; track stays the
+     element, thumb gets the accent + focus ring. */
+  .range {
+    @apply h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200 accent-primary-600 dark:bg-slate-800;
+  }
+  .range::-webkit-slider-thumb {
+    appearance: none;
+    @apply -mt-1.5 size-5 rounded-full border-[3px] border-white bg-primary-600 shadow ring-1 ring-slate-900/10 dark:border-slate-900 dark:ring-white/20;
+  }
+  .range::-webkit-slider-runnable-track {
+    @apply h-2 rounded-full;
+  }
+  .range::-moz-range-thumb {
+    @apply size-4 rounded-full border-[3px] border-white bg-primary-600 shadow dark:border-slate-900;
+  }
+  .range::-moz-range-track {
+    @apply h-2 rounded-full bg-slate-200 dark:bg-slate-800;
+  }
+  .range:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900;
+  }
+
+  /* Initials avatar roundel — add a size-* + text-* per use. */
+  .avatar {
+    @apply flex shrink-0 items-center justify-center rounded-full bg-primary-50 font-semibold text-primary-700 dark:bg-primary-500/10 dark:text-primary-300;
+  }
+
+  /* Button system */
+  .btn {
+    /* whitespace-nowrap: labels never wrap inside a button — longer
+       translations (de) would otherwise break modal footers. */
+    @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg px-4 py-2.5 text-sm font-semibold transition-colors duration-200 motion-reduce:transition-none;
+  }
+  .btn-primary {
+    @apply bg-primary-600 text-white shadow-sm hover:bg-primary-700;
+  }
+  .btn-secondary {
+    @apply border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-200 dark:hover:bg-slate-800;
+  }
+  .btn-ghost {
+    @apply text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800;
+  }
+  .btn-danger {
+    @apply bg-rose-600 text-white shadow-sm hover:bg-rose-700;
+  }
+  /* Icon-only square variant — pair with a .btn-* color class and an
+     :aria-label (no visible text). Fixed square so it lines up
+     pixel-perfect next to labelled .btn's in the same toolbar. */
+  .btn-icon {
+    @apply size-10 px-0;
+  }
+}
+
+/* Table-local compact density — the col-toggle menu's "Compact density"
+   item toggles `dense` on the paginated scope; the page binds this class
+   on the table's scroll wrapper. The global density setting
+   (data-density) is unaffected.
+   Deliberately UNLAYERED: cells carry py-* utilities, and @layer
+   utilities always beats @layer components — only unlayered CSS can
+   override them. */
+.table-dense th,
+.table-dense td {
+  @apply py-2;
+}
+
+/* Print — invoice/report output: chrome is hidden via `print:hidden`,
+   surfaces flatten to white with plain borders. Cards and rows stay
+   whole across page breaks; table header rows repeat per page. Dark
+   mode is stripped for the print snapshot in app.js (beforeprint). */
+@media print {
+  body {
+    @apply bg-white text-slate-900;
+  }
+  .card {
+    @apply border-slate-300 shadow-none;
+    break-inside: avoid;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tr {
+    break-inside: avoid;
+  }
+}
+
+/* Reduced-motion catch-all — authored elements opt out via
+   `motion-reduce:` utilities and Apex reads reduceMotion() in JS, but
+   this guarantees nothing animates where a future edit forgets
+   (incl. Alpine x-transition, which times off transition-duration). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

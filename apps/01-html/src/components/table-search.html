@@ -1,0 +1,16 @@
+<!-- Table search — include inside an x-data="paginated(...)" scope.
+     Filters rows via the paginated component's `q` (all-field, case-insensitive). -->
+<div class="relative">
+  <span
+    class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+    x-html="$icon('search', 'size-4')"
+    aria-hidden="true"
+  ></span>
+  <input
+    type="search"
+    x-model.debounce.200ms="q"
+    :placeholder="$t('searchRows')"
+    :aria-label="$t('searchRows')"
+    class="input w-full py-2 pl-9 sm:w-56"
+  />
+</div>

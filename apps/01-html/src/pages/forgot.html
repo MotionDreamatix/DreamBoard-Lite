@@ -1,0 +1,29 @@
+{{@layout "blank"}}
+{{@var title "Reset password"}}
+
+<div class="w-full max-w-sm" x-data="auth('forgot')">
+  <div class="card p-8 text-center">
+    <span
+      class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300"
+      x-html="$icon('mail', 'size-7')"
+      aria-hidden="true"
+    ></span>
+    <h1 class="mt-5 auth-title" x-text="$t(d.pages.auth.forgot.heading)"></h1>
+    <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400" x-text="$t(d.pages.auth.forgot.sub)"></p>
+
+    <form action="signin.html" method="get" class="mt-6 text-left" @submit="submit">
+      <label for="email" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300" x-text="$t('emailLabel')"></label>
+      <input id="email" name="email" type="email" autocomplete="email" required class="input" :placeholder="$t('you@company.com')" />
+      <p x-show="error" x-cloak role="alert" class="mt-3 text-sm text-rose-600 dark:text-rose-400" x-text="error"></p>
+      <button type="submit" class="btn btn-primary mt-4 w-full justify-center" :disabled="pending" x-text="sent ? $t('resetLinkSent') : $t('sendResetLink')"></button>
+    </form>
+    <p x-show="sent" x-cloak class="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300" x-text="$t('checkInboxReset')"></p>
+  </div>
+
+  <p class="mt-6 text-center text-sm">
+    <a href="signin.html" class="inline-flex items-center gap-1.5 font-medium text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
+      <span x-html="$icon('chevronLeft', 'size-3.5', 'regular')" aria-hidden="true"></span>
+      <span x-text="$t('backToSignIn')"></span>
+    </a>
+  </p>
+</div>

@@ -1,0 +1,15 @@
+<!-- Select-all header cell — include inside an x-data="paginated(...)"
+     scope. `indeterminate` mirrors partial page selection. -->
+<th scope="col" class="sticky-col w-10 px-5 py-3">
+  <label class="flex cursor-pointer items-center">
+    <input
+      type="checkbox"
+      class="peer sr-only"
+      :aria-label="$t('selectAllAria')"
+      :checked="allSelected"
+      x-effect="$el.indeterminate = someSelected"
+      @change="toggleAll()"
+    />
+    <span class="check" aria-hidden="true" x-html="$icon('checkPlain', 'size-3.5', 'bold')"></span>
+  </label>
+</th>

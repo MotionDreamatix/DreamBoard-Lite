@@ -1,0 +1,12 @@
+<!-- Page heading (h1 + optional subtitle).
+     Contract — declare Alpine expressions as page vars:
+       @var phH "d.pages.orders.heading"   required, passed through $t()
+       @var phS "d.pages.orders.sub"       optional, defaults to null
+     Emits the text block only. When the row also carries action
+     buttons, wrap this include in .page-head and place them after. -->
+<div>
+  <h1 class="page-title" x-text="$t({{phH}})"></h1>
+  <template x-if="{{phS}}">
+    <p class="page-sub" x-text="$t({{phS}})"></p>
+  </template>
+</div>

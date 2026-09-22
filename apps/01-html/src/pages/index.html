@@ -1,0 +1,214 @@
+{{@layout "base"}}
+{{@var title "Dashboard"}}
+
+<!-- Page heading -->
+<div class="page-head">
+  <div>
+    <h1 class="page-title" x-text="$t('Dashboard')"></h1>
+    <p class="page-sub">
+      <span x-text="$t('welcomeBack', { name: d.user.name })"></span>
+    </p>
+  </div>
+  <a href="report-new.html" class="btn btn-primary">
+    <span x-html="$icon('plus', 'size-4', 'regular')" aria-hidden="true"></span>
+    <span x-text="$t('New report')"></span>
+  </a>
+</div>
+
+<!-- ── KPI stat cards ────────────────────────────────────────────────── -->
+<section :aria-label="$t('Key metrics')" class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+  <template x-for="s in d.stats" :key="s.id">
+    {{> components/statcard}}
+  </template>
+</section>
+
+<!-- ── Charts row (ApexCharts, vendored — finance-demo style) ────────── -->
+<div class="mt-4 grid gap-4 xl:grid-cols-3">
+  <!-- Revenue area chart -->
+  <section class="card p-5 xl:col-span-2" aria-labelledby="revenue-chart-title" x-data="revenueChart">
+    <div class="mb-2">
+      <h2 id="revenue-chart-title" class="card-title" x-text="$t('Revenue')"></h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400" x-text="$t(yAxisLabel)"></p>
+    </div>
+
+    <!-- WCAG: Apex renders its own interactive legend — no role="img" here;
+         the section's aria-labelledby + sr-only table carry the semantics. -->
+    <div x-ref="chart" class="w-full"></div>
+
+    <!-- Screen-reader equivalent of the chart data -->
+    <table class="sr-only">
+      <caption x-text="$t(label)"></caption>
+      <thead>
+        <tr>
+          <th scope="col" x-text="$t('Month')"></th>
+          <template x-for="s in series" :key="s.name">
+            <th scope="col" x-text="$t(s.name)"></th>
+          </template>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="(l, i) in labels" :key="l">
+          <tr>
+            <th scope="row" x-text="$t(l)"></th>
+            <template x-for="s in series" :key="s.name">
+              <td x-text="s.data[i]"></td>
+            </template>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Orders bar chart -->
+  <section class="card p-5" aria-labelledby="orders-chart-title" x-data="ordersChart">
+    <h2 id="orders-chart-title" class="card-title" x-text="$t('Orders this week')"></h2>
+    <div x-ref="chart" class="w-full"></div>
+    <!-- WCAG: same data in an sr-only table -->
+    <table class="sr-only">
+      <caption x-text="$t(label)"></caption>
+      <tbody>
+        <template x-for="(l, i) in labels" :key="l">
+          <tr><th scope="row" x-text="$t(l)"></th><td x-text="data[i]"></td></tr>
+        </template>
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<!-- ── Recent orders — full width, hardened table ──────────────────── -->
+<section
+  class="card mt-4 overflow-hidden"
+  aria-labelledby="recent-orders-title"
+  x-data="{
+    cols: [
+      { key: 'id', label: 'Order' },
+      { key: 'customer', label: 'Customer' },
+      { key: 'product', label: 'Product' },
+      { key: 'date', label: 'Date' },
+      { key: 'amount', label: 'Amount' },
+      { key: 'status', label: 'Status', sort: false },
+    ],
+    ...paginated(() => d.recentOrders, 5),
+  }"
+>
+  <div class="card-head">
+    <h2 id="recent-orders-title" class="card-title" x-text="$t('Recent orders')"></h2>
+    <div class="flex flex-wrap items-center gap-3">
+      <a
+        href="orders.html"
+        class="rounded-md text-sm font-medium text-primary-600 transition-colors duration-200 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+        x-text="$t('View all')"></a
+      >
+      {{> components/col-toggle}}
+    </div>
+  </div>
+  <div class="overflow-x-auto" :class="dense && 'table-dense'" tabindex="0">
+    <table class="w-full min-w-xl text-sm">
+      <thead>
+        <tr class="border-b border-slate-200/60 text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:border-slate-800/60 dark:text-slate-400">
+          <template x-for="col in cols.filter(c => c.sort !== false)" :key="col.key">
+            {{> components/th-sort}}
+          </template>
+          <th scope="col" class="px-5 py-3" x-show="colShown('status')" x-text="$t('Status')"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+        <template x-for="o in pageItems" :key="o.id">
+          <tr class="transition-colors duration-200 hover:bg-slate-50 motion-reduce:transition-none dark:hover:bg-slate-800/40">
+            <td class="px-5 py-3.5 font-medium tabular-nums text-slate-800 dark:text-slate-200" x-show="colShown('id')" x-text="o.id"></td>
+            <td class="px-3 py-3.5" x-show="colShown('customer')">
+              <span class="flex items-center gap-2.5">
+                <span
+                  class="flex size-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-[10px] font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                  x-text="initials(o.customer)"
+                  aria-hidden="true"
+                ></span>
+                <span class="whitespace-nowrap text-slate-700 dark:text-slate-300" x-text="o.customer"></span>
+              </span>
+            </td>
+            <td class="max-w-40 truncate px-3 py-3.5 text-slate-500 dark:text-slate-400" x-show="colShown('product')" x-text="o.product"></td>
+            <td class="whitespace-nowrap px-3 py-3.5 text-slate-500 dark:text-slate-400" x-show="colShown('date')">
+              <time :datetime="o.date" x-text="fmtDate(o.date)"></time>
+            </td>
+            <td class="whitespace-nowrap px-3 py-3.5 text-right font-medium tabular-nums text-slate-800 dark:text-slate-200" x-show="colShown('amount')" x-text="fmt(o.amount, 'currency')"></td>
+            <td class="px-5 py-3.5" x-show="colShown('status')">
+              <span
+                class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize"
+                :class="badge(statusVariant(o.status))"
+                x-text="$t(o.status)"
+              ></span>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+  {{> components/pagination}}
+</section>
+
+<!-- ── Bottom row: top products, activity, by device/user agent ────── -->
+<div class="mt-4 grid gap-4 lg:grid-cols-3">
+  <section class="card p-5" aria-labelledby="top-products-title">
+    <h2 id="top-products-title" class="card-title mb-4" x-text="$t('Top products')"></h2>
+    <ul class="divide-y divide-slate-100 dark:divide-slate-800/60">
+      <template x-for="p in d.topProducts" :key="p.name">
+        <li class="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
+          <div class="min-w-0">
+            <p class="truncate text-sm font-medium text-slate-800 dark:text-slate-200" x-text="p.name"></p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">
+              <span x-text="$t(p.category)"></span> · <span class="tabular-nums" x-text="fmt(p.price, 'currency')"></span>
+            </p>
+          </div>
+          <p class="shrink-0 text-right">
+            <span class="block text-sm font-semibold tabular-nums text-slate-800 dark:text-slate-200" x-text="fmt(p.sold)"></span>
+            <span class="block text-xs text-slate-500 dark:text-slate-400" x-text="$t('sold')"></span>
+          </p>
+        </li>
+      </template>
+    </ul>
+  </section>
+
+  <section class="card p-5" aria-labelledby="activity-title">
+    <h2 id="activity-title" class="card-title mb-4" x-text="$t('Activity')"></h2>
+    <ul class="space-y-4">
+      <template x-for="a in d.activity" :key="a.actor + a.time">
+        <li class="flex items-start gap-3">
+          <span
+            class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+            x-html="$icon(a.icon, 'size-4')"
+            aria-hidden="true"
+          ></span>
+          <p class="min-w-0 text-sm text-slate-600 dark:text-slate-300">
+            <span class="font-medium text-slate-800 dark:text-slate-100" x-text="a.actor"></span>
+            <span x-text="' ' + $t(a.action) + ' '"></span>
+            <span class="font-medium text-primary-600 dark:text-primary-400" x-text="a.target"></span>
+            <time class="mt-0.5 block text-xs text-slate-500 dark:text-slate-400" x-text="$t(a.time)"></time>
+          </p>
+        </li>
+      </template>
+    </ul>
+  </section>
+
+  <!-- Visitors by browser / user agent -->
+  <section class="card p-5" aria-labelledby="user-agents-title">
+    <h2 id="user-agents-title" class="card-title mb-4" x-text="$t('By device')"></h2>
+    <ul class="space-y-3.5">
+      <template x-for="ua in d.userAgents" :key="ua.name">
+        <li>
+          <div class="mb-1 flex items-center justify-between gap-3 text-sm">
+            <span class="flex items-center gap-2 text-slate-700 dark:text-slate-200">
+              <span class="text-slate-400" x-html="$icon(ua.icon, 'size-4')" aria-hidden="true"></span>
+              <span x-text="$t(ua.name)"></span>
+            </span>
+            <span class="shrink-0 text-xs tabular-nums text-slate-500 dark:text-slate-400">
+              <span x-text="fmt(ua.sessions)"></span> · <span x-text="ua.share + '%'"></span>
+            </span>
+          </div>
+          <div class="h-1.5 rounded-full bg-slate-100 dark:bg-slate-800" role="img" :aria-label="$t('agentShareAria', { name: ua.name, share: ua.share })">
+            <div class="h-full rounded-full bg-primary-500" :style="'width: ' + ua.share + '%'"></div>
+          </div>
+        </li>
+      </template>
+    </ul>
+  </section>
+</div>

@@ -1,0 +1,8 @@
+<!-- Sortable column header — include inside `x-for="col in [...]"`
+     within an x-data="paginated(...)" scope. -->
+<th scope="col" class="px-5 py-3" :aria-sort="ariaSort(col.key)" x-show="colShown(col.key)">
+  <button type="button" class="th-sort" @click="sort(col.key)">
+    <span x-text="$t(col.label)"></span>
+    <span x-html="$icon(sortIcon(col.key), 'size-3')" aria-hidden="true"></span>
+  </button>
+</th>

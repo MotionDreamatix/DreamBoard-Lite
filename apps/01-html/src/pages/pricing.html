@@ -1,0 +1,77 @@
+{{@layout "base"}}
+{{@var title "Pricing"}}
+{{@var phH "d.pages.pricing.heading"}}
+{{@var phS "d.pages.pricing.sub"}}
+
+<div x-data="{ annual: true }">
+  <!-- Page heading + billing-cycle toggle -->
+  <div class="page-head">
+    {{> components/page-heading}}
+    <div class="flex items-center gap-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" role="group" :aria-label="$t('billingCycle')">
+      <button
+        type="button"
+        class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors motion-reduce:transition-none"
+        :class="!annual
+          ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-white'
+          : 'text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'"
+        :aria-pressed="!annual"
+        @click="annual = false"
+        x-text="$t(d.pages.pricing.cycle.monthly)"
+      ></button>
+      <button
+        type="button"
+        class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors motion-reduce:transition-none"
+        :class="annual
+          ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-white'
+          : 'text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'"
+        :aria-pressed="annual"
+        @click="annual = true"
+      >
+        <span x-text="$t(d.pages.pricing.cycle.annual)"></span>
+        <span
+          class="ml-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold"
+          :class="badge('success')"
+          x-text="$t(d.pages.pricing.cycle.save)"
+        ></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tier cards -->
+  <div class="grid gap-4 md:grid-cols-3">
+    <template x-for="t in d.pages.pricing.tiers" :key="t.name">
+      <section
+        class="card relative flex flex-col p-6"
+        :class="t.popular && 'ring-2 ring-primary-500'"
+        :aria-labelledby="'tier-' + t.name"
+      >
+        <span
+          x-show="t.popular"
+          class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary-600 px-3 py-0.5 text-[11px] font-semibold whitespace-nowrap text-white dark:bg-primary-500"
+          x-text="$t('Most popular')"
+        ></span>
+        <h2 :id="'tier-' + t.name" class="card-title" x-text="$t(t.name)"></h2>
+        <p class="card-sub" x-text="$t(t.desc)"></p>
+        <p class="mt-4">
+          <span class="text-4xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white" x-text="fmt(annual ? t.annual : t.monthly, 'currency')"></span>
+          <span class="text-sm text-slate-500 dark:text-slate-400">/ <span x-text="$t('perMonth')"></span></span>
+        </p>
+        <ul class="mt-5 flex-1 space-y-2.5" role="list">
+          <template x-for="f in t.features" :key="f">
+            <li class="flex items-start gap-2.5 text-sm text-slate-700 dark:text-slate-300">
+              <span class="mt-0.5 shrink-0 text-emerald-600 dark:text-emerald-400" x-html="$icon('checkPlain', 'size-4', 'bold')" aria-hidden="true"></span>
+              <span x-text="$t(f)"></span>
+            </li>
+          </template>
+        </ul>
+        <button
+          type="button"
+          class="btn mt-6 w-full"
+          :class="t.popular ? 'btn-primary' : 'btn-secondary'"
+          @click="$store.toasts.push({ title: $t('toastDemoAction'), variant: 'info' })"
+          x-text="$t(t.cta)"
+        ></button>
+      </section>
+    </template>
+  </div>
+</div>

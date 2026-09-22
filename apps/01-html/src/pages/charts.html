@@ -1,0 +1,13 @@
+{{@layout "base"}}
+{{@var title "Charts"}}
+{{@var phH "d.pages.charts.heading"}}
+{{@var phS "d.pages.charts.sub"}}
+<div class="page-head">
+  {{> components/page-heading}}
+</div>
+
+<div class="grid gap-4 md:grid-cols-2">
+  <template x-for="c in d.pages.charts.cards" :key="c.key">
+    {{> components/chart-card}}
+  </template>
+</div>

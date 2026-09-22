@@ -1,0 +1,14 @@
+# DreamBoard — Dashboard UI Kit
+
+> Premium, accessible dashboard kit — WCAG 2.2 AA verified, vendored
+> assets, single-token theming, mock-data decoupling, en/de i18n.
+> Package contents and commands: README.md.
+
+## Docs
+
+- [README.md](README.md): package contents, quick start, customization
+- [AGENTS.md](AGENTS.md): data contract, conventions, a11y rules,
+  page-adding checklist for AI assistants
+- [CHANGELOG.md](CHANGELOG.md): version history
+- [LICENSE](LICENSE): commercial license terms (Regular / Extended)
+- [Component inventory](docs/component-inventory.md): Lite component catalog

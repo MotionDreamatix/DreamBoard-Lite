@@ -1,0 +1,278 @@
+{{@layout "base"}}
+{{@var title "New report"}}
+{{@var phH "d.pages.reportNew.heading"}}
+{{@var phS "d.pages.reportNew.sub"}}
+
+<!-- Dedicated create-report form — opened from the "New report"
+     buttons on the dashboard and the reports page. Submitting queues
+     the report (demo toast) and returns to reports.html. -->
+<div class="page-head">
+  {{> components/page-heading}}
+</div>
+
+<form
+  class="card max-w-3xl p-6"
+  @submit.prevent="$store.toasts.push({ title: $t('toastReportQueued'), variant: 'success' }); location.href = 'reports.html'"
+>
+  <div class="grid gap-5 sm:grid-cols-2">
+    <!-- Name -->
+    <div class="sm:col-span-2">
+      <label for="rn-name" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+        <span x-text="$t(d.pages.reportNew.fields.nameLabel)"></span>
+        <span class="text-rose-500" aria-hidden="true"> *</span>
+      </label>
+      <input
+        id="rn-name"
+        name="name"
+        type="text"
+        required
+        :placeholder="$t(d.pages.reportNew.fields.namePlaceholder)"
+        class="input"
+      />
+    </div>
+
+    <!-- Type — accessible custom listbox (same contract as the
+         components-page select; hidden input carries the value). -->
+    <div x-data="select(d.pages.reportNew.fields.types)" x-id="['selopt']">
+      <label id="rn-type-label" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200" x-text="$t(d.pages.reportNew.fields.typeLabel)"></label>
+      <div class="relative">
+        <input type="hidden" name="type" :value="options[selected]" />
+        <button
+          type="button"
+          x-ref="trigger"
+          class="input flex w-full cursor-pointer items-center justify-between gap-2 text-left"
+          aria-haspopup="listbox"
+          :aria-expanded="open"
+          aria-labelledby="rn-type-label"
+          @click="toggle()"
+          @keydown="onTriggerKeydown"
+        >
+          <span x-text="$t(options[selected])"></span>
+          <span
+            class="shrink-0 text-slate-400 transition-transform duration-150 motion-reduce:transition-none"
+            :class="open && 'rotate-180'"
+            x-html="$icon('chevronDown', 'size-4', 'regular')"
+            aria-hidden="true"
+          ></span>
+        </button>
+        <ul
+          x-ref="list"
+          role="listbox"
+          aria-labelledby="rn-type-label"
+          tabindex="-1"
+          :aria-activedescendant="open ? $id('selopt', highlight) : null"
+          x-show="open"
+          x-cloak
+          x-transition:enter="transition ease-out duration-150 motion-reduce:transition-none"
+          x-transition:enter-start="opacity-0 -translate-y-1 scale-[0.98]"
+          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+          x-transition:leave="transition ease-in duration-100 motion-reduce:transition-none"
+          x-transition:leave-start="opacity-100"
+          x-transition:leave-end="opacity-0 -translate-y-1 scale-[0.98]"
+          @keydown="onListKeydown"
+          @click.outside="close(false)"
+          class="menu-panel absolute inset-x-0 z-40 mt-1.5 max-h-56 origin-top overflow-y-auto p-1"
+        >
+          <template x-for="(o, i) in options" :key="o">
+            <li
+              role="option"
+              :id="$id('selopt', i)"
+              :data-opt="i"
+              :aria-selected="i === selected"
+              class="menu-item justify-between rounded-xl py-2"
+              :class="i === highlight && 'bg-slate-100 dark:bg-slate-800'"
+              @click="choose(i)"
+              @mousemove="highlight = i"
+            >
+              <span x-text="$t(o)"></span>
+              <span
+                x-show="i === selected"
+                x-html="$icon('checkPlain', 'size-4', 'bold')"
+                class="text-primary-600 dark:text-primary-400"
+                aria-hidden="true"
+              ></span>
+            </li>
+          </template>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Date range -->
+    <div x-data="select(d.pages.reportNew.fields.ranges)" x-id="['selopt']">
+      <label id="rn-range-label" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200" x-text="$t(d.pages.reportNew.fields.rangeLabel)"></label>
+      <div class="relative">
+        <input type="hidden" name="range" :value="options[selected]" />
+        <button
+          type="button"
+          x-ref="trigger"
+          class="input flex w-full cursor-pointer items-center justify-between gap-2 text-left"
+          aria-haspopup="listbox"
+          :aria-expanded="open"
+          aria-labelledby="rn-range-label"
+          @click="toggle()"
+          @keydown="onTriggerKeydown"
+        >
+          <span x-text="$t(options[selected])"></span>
+          <span
+            class="shrink-0 text-slate-400 transition-transform duration-150 motion-reduce:transition-none"
+            :class="open && 'rotate-180'"
+            x-html="$icon('chevronDown', 'size-4', 'regular')"
+            aria-hidden="true"
+          ></span>
+        </button>
+        <ul
+          x-ref="list"
+          role="listbox"
+          aria-labelledby="rn-range-label"
+          tabindex="-1"
+          :aria-activedescendant="open ? $id('selopt', highlight) : null"
+          x-show="open"
+          x-cloak
+          x-transition:enter="transition ease-out duration-150 motion-reduce:transition-none"
+          x-transition:enter-start="opacity-0 -translate-y-1 scale-[0.98]"
+          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+          x-transition:leave="transition ease-in duration-100 motion-reduce:transition-none"
+          x-transition:leave-start="opacity-100"
+          x-transition:leave-end="opacity-0 -translate-y-1 scale-[0.98]"
+          @keydown="onListKeydown"
+          @click.outside="close(false)"
+          class="menu-panel absolute inset-x-0 z-40 mt-1.5 max-h-56 origin-top overflow-y-auto p-1"
+        >
+          <template x-for="(o, i) in options" :key="o">
+            <li
+              role="option"
+              :id="$id('selopt', i)"
+              :data-opt="i"
+              :aria-selected="i === selected"
+              class="menu-item justify-between rounded-xl py-2"
+              :class="i === highlight && 'bg-slate-100 dark:bg-slate-800'"
+              @click="choose(i)"
+              @mousemove="highlight = i"
+            >
+              <span x-text="$t(o)"></span>
+              <span
+                x-show="i === selected"
+                x-html="$icon('checkPlain', 'size-4', 'bold')"
+                class="text-primary-600 dark:text-primary-400"
+                aria-hidden="true"
+              ></span>
+            </li>
+          </template>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Sections -->
+    <fieldset class="sm:col-span-2">
+      <legend class="mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-200" x-text="$t(d.pages.reportNew.fields.sectionsLabel)"></legend>
+      <div class="grid gap-2 sm:grid-cols-3">
+        <template x-for="(sc, i) in d.pages.reportNew.fields.sections" :key="sc">
+          <label class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-700 transition-colors duration-200 has-checked:border-primary-300 has-checked:bg-primary-50/60 dark:border-slate-700 dark:text-slate-200 dark:has-checked:border-primary-500/40 dark:has-checked:bg-primary-500/10">
+            <input type="checkbox" name="sections" :value="sc" :checked="i < 3" class="peer sr-only" />
+            <span class="check shrink-0" aria-hidden="true" x-html="$icon('checkPlain', 'size-3.5', 'bold')"></span>
+            <span x-text="$t(sc)"></span>
+          </label>
+        </template>
+      </div>
+    </fieldset>
+
+    <!-- Format -->
+    <fieldset>
+      <legend class="mb-1.5 text-sm font-medium text-slate-700 dark:text-slate-200" x-text="$t(d.pages.reportNew.fields.formatLabel)"></legend>
+      <div class="flex gap-2">
+        <template x-for="(fm, i) in d.pages.reportNew.fields.formats" :key="fm">
+          <label class="flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-700 transition-colors duration-200 has-checked:border-primary-300 has-checked:bg-primary-50/60 dark:border-slate-700 dark:text-slate-200 dark:has-checked:border-primary-500/40 dark:has-checked:bg-primary-500/10">
+            <input type="radio" name="format" :value="fm" :checked="i === 0" class="size-4 accent-primary-600" />
+            <span x-text="fm"></span>
+          </label>
+        </template>
+      </div>
+    </fieldset>
+
+    <!-- Schedule -->
+    <div x-data="select(d.pages.reportNew.fields.schedules)" x-id="['selopt']">
+      <label id="rn-schedule-label" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200" x-text="$t(d.pages.reportNew.fields.scheduleLabel)"></label>
+      <div class="relative">
+        <input type="hidden" name="schedule" :value="options[selected]" />
+        <button
+          type="button"
+          x-ref="trigger"
+          class="input flex w-full cursor-pointer items-center justify-between gap-2 text-left"
+          aria-haspopup="listbox"
+          :aria-expanded="open"
+          aria-labelledby="rn-schedule-label"
+          @click="toggle()"
+          @keydown="onTriggerKeydown"
+        >
+          <span x-text="$t(options[selected])"></span>
+          <span
+            class="shrink-0 text-slate-400 transition-transform duration-150 motion-reduce:transition-none"
+            :class="open && 'rotate-180'"
+            x-html="$icon('chevronDown', 'size-4', 'regular')"
+            aria-hidden="true"
+          ></span>
+        </button>
+        <ul
+          x-ref="list"
+          role="listbox"
+          aria-labelledby="rn-schedule-label"
+          tabindex="-1"
+          :aria-activedescendant="open ? $id('selopt', highlight) : null"
+          x-show="open"
+          x-cloak
+          x-transition:enter="transition ease-out duration-150 motion-reduce:transition-none"
+          x-transition:enter-start="opacity-0 -translate-y-1 scale-[0.98]"
+          x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+          x-transition:leave="transition ease-in duration-100 motion-reduce:transition-none"
+          x-transition:leave-start="opacity-100"
+          x-transition:leave-end="opacity-0 -translate-y-1 scale-[0.98]"
+          @keydown="onListKeydown"
+          @click.outside="close(false)"
+          class="menu-panel absolute inset-x-0 z-40 mt-1.5 max-h-56 origin-top overflow-y-auto p-1"
+        >
+          <template x-for="(o, i) in options" :key="o">
+            <li
+              role="option"
+              :id="$id('selopt', i)"
+              :data-opt="i"
+              :aria-selected="i === selected"
+              class="menu-item justify-between rounded-xl py-2"
+              :class="i === highlight && 'bg-slate-100 dark:bg-slate-800'"
+              @click="choose(i)"
+              @mousemove="highlight = i"
+            >
+              <span x-text="$t(o)"></span>
+              <span
+                x-show="i === selected"
+                x-html="$icon('checkPlain', 'size-4', 'bold')"
+                class="text-primary-600 dark:text-primary-400"
+                aria-hidden="true"
+              ></span>
+            </li>
+          </template>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Recipients -->
+    <div class="sm:col-span-2">
+      <label for="rn-email" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200" x-text="$t(d.pages.reportNew.fields.emailLabel)"></label>
+      <input
+        id="rn-email"
+        name="email"
+        type="text"
+        :placeholder="$t(d.pages.reportNew.fields.emailPlaceholder)"
+        class="input"
+      />
+      <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400" x-text="$t(d.pages.reportNew.fields.emailHint)"></p>
+    </div>
+  </div>
+
+  <div class="mt-6 flex flex-wrap items-center gap-3 border-t border-slate-200/60 pt-5 dark:border-slate-800/60">
+    <button type="submit" class="btn btn-primary">
+      <span x-html="$icon('file', 'size-4')" aria-hidden="true"></span>
+      <span x-text="$t('Create report')"></span>
+    </button>
+    <a href="reports.html" class="btn btn-ghost" x-text="$t('Cancel')"></a>
+  </div>
+</form>

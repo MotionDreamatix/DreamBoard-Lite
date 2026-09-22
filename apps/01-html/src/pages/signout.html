@@ -1,0 +1,18 @@
+{{@layout "blank"}}
+{{@var title "Signed out"}}
+
+<div class="w-full max-w-sm">
+  <div class="card p-8 text-center" x-data="auth('signout')">
+    <span
+      class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300"
+      x-html="$icon('logout', 'size-7')"
+      aria-hidden="true"
+    ></span>
+    <h1 class="mt-5 auth-title" x-text="$t(d.pages.signout.heading)"></h1>
+    <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400" x-text="$t(d.pages.signout.body)"></p>
+    <a href="signin.html" class="btn btn-primary mt-6 w-full justify-center" x-text="$t('Sign back in')"></a>
+  </div>
+  <p class="mt-6 text-center text-xs text-slate-500 dark:text-slate-400">
+    {{> components/brand-note}}
+  </p>
+</div>

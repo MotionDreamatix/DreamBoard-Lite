@@ -1,0 +1,187 @@
+{{@layout "base"}}
+{{@var title "Billing"}}
+{{@var phH "d.pages.billing.heading"}}
+{{@var phS "d.pages.billing.sub"}}
+
+<!-- Page heading -->
+<div class="page-head">
+  {{> components/page-heading}}
+</div>
+
+<div class="grid gap-4 lg:grid-cols-2" x-data="billingPage">
+  <!-- Current plan -->
+  <section class="card p-6" aria-labelledby="billing-plan-title">
+    <div class="flex items-start justify-between gap-4">
+      <div>
+        <h2 id="billing-plan-title" class="card-title" x-text="$t('Current plan')"></h2>
+        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          <span x-text="$t('Renews')"></span> <time :datetime="d.pages.billing.plan.renews" x-text="fmtDate(d.pages.billing.plan.renews)"></time>
+        </p>
+      </div>
+      <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium" :class="badge('primary')" x-text="$t(d.pages.billing.plan.name)"></span>
+    </div>
+    <p class="mt-5 flex items-baseline gap-1.5">
+      <span class="text-3xl font-bold tabular-nums tracking-tight text-slate-900 dark:text-white" x-text="fmt(d.pages.billing.plan.price, 'currency')"></span>
+      <span class="text-sm text-slate-500 dark:text-slate-400">/ <span x-text="$t(d.pages.billing.plan.period)"></span></span>
+    </p>
+    <p class="mt-1.5 text-sm text-slate-500 dark:text-slate-400" x-text="$t(d.pages.billing.plan.seats)"></p>
+    <div class="mt-6 flex items-center gap-3">
+      <!-- In-kit navigation: upgrade → pricing tiers, seats → members.
+           Buyer seam: point these at your billing portal instead. -->
+      <a href="pricing.html" class="btn btn-primary" x-text="$t('Upgrade plan')"></a>
+      <a href="members.html" class="btn btn-ghost" x-text="$t('Manage seats')"></a>
+    </div>
+  </section>
+
+  <!-- Payment method -->
+  <section class="card p-6" aria-labelledby="billing-payment-title">
+    <h2 id="billing-payment-title" class="card-title" x-text="$t('Payment method')"></h2>
+    <div class="mt-5 flex items-center gap-4 rounded-xl border border-slate-200/60 p-4 dark:border-slate-800/60">
+      <span
+        class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300"
+        x-html="$icon('card', 'size-5')"
+        aria-hidden="true"
+      ></span>
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-semibold text-slate-800 dark:text-slate-100">
+          <span x-text="d.pages.billing.payment.brand"></span>
+          <span class="tabular-nums"> •••• <span x-text="d.pages.billing.payment.last4"></span></span>
+        </p>
+        <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+          <span x-text="$t('Expires')"></span> <span class="tabular-nums" x-text="d.pages.billing.payment.expiry"></span> · <span x-text="d.pages.billing.payment.holder"></span>
+        </p>
+      </div>
+      <button type="button" class="btn btn-secondary shrink-0" @click="openPayment($event)" x-text="$t('Update')"></button>
+    </div>
+  </section>
+
+  <!-- Payment method dialog -->
+  <template x-teleport="body">
+    <div
+      x-show="payM.open"
+      x-cloak
+      class="fixed inset-0 z-70 flex items-end justify-center p-4 sm:items-center"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="payment-modal-title"
+      @keydown.escape.window="payM.hide()"
+    >
+      <div x-show="payM.open" x-transition.opacity class="absolute inset-0 bg-slate-900/60" aria-hidden="true" @click="payM.hide()"></div>
+      <div
+        x-init="payM.panelEl = $el"
+        x-show="payM.open"
+        x-transition
+        x-trap.noscroll="payM.open"
+        class="menu-panel relative w-full max-w-md p-6"
+      >
+        <div class="flex items-start justify-between gap-4">
+          <h3 id="payment-modal-title" class="text-lg font-semibold tracking-tight text-slate-900 dark:text-white" x-text="$t('Update payment method')"></h3>
+          <button
+            type="button"
+            class="rounded-lg p-1.5 text-slate-400 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+            :aria-label="$t('Close dialog')"
+            @click="payM.hide()"
+          >
+            <span x-html="$icon('close', 'size-5', 'regular')" aria-hidden="true"></span>
+          </button>
+        </div>
+        <form class="mt-5 space-y-4" @submit.prevent="savePayment()">
+          <div class="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label for="pay-brand" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300" x-text="$t('Card brand')"></label>
+              <input id="pay-brand" type="text" class="input" x-model="payForm.brand" autocomplete="cc-type" />
+            </div>
+            <div>
+              <label for="pay-last4" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300" x-text="$t('Card number')"></label>
+              <input id="pay-last4" type="text" inputmode="numeric" maxlength="19" class="input" x-model="payForm.last4" autocomplete="cc-number" />
+            </div>
+            <div>
+              <label for="pay-expiry" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300" x-text="$t('Expiry')"></label>
+              <input id="pay-expiry" type="text" class="input" x-model="payForm.expiry" placeholder="MM/YYYY" autocomplete="cc-exp" />
+            </div>
+            <div>
+              <label for="pay-holder" class="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300" x-text="$t('Cardholder name')"></label>
+              <input id="pay-holder" type="text" class="input" x-model="payForm.holder" autocomplete="cc-name" />
+            </div>
+          </div>
+          <div class="flex items-center justify-end gap-2 pt-1">
+            <button type="button" class="btn btn-ghost" @click="payM.hide()" x-text="$t('Cancel')"></button>
+            <button type="submit" class="btn btn-primary" x-text="$t('Save changes')"></button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </template>
+</div>
+
+<!-- Invoices -->
+<section class="card mt-4 overflow-hidden" aria-labelledby="billing-invoices-title" x-data="{
+  cols: [
+    { key: 'id', label: 'Invoice' },
+    { key: 'date', label: 'Date' },
+    { key: 'amount', label: 'Amount' },
+    { key: 'status', label: 'Status', sort: false },
+  ],
+  ...paginated(() => d.pages.billing.invoices, 5),
+}">
+  <div class="card-head">
+    <h2 id="billing-invoices-title" class="card-title" x-text="$t('Invoices')"></h2>
+    {{> components/col-toggle}}
+  </div>
+  <div class="overflow-x-auto" :class="dense && 'table-dense'" tabindex="0">
+    <table class="w-full min-w-128 text-sm">
+      <thead>
+        <tr class="border-b border-slate-200/60 text-left text-xs font-medium uppercase tracking-wide text-slate-500 dark:border-slate-800/60 dark:text-slate-400">
+          <template x-for="col in [
+            { key: 'id', label: 'Invoice', cls: 'px-5' },
+            { key: 'date', label: 'Date', cls: 'px-3' },
+            { key: 'amount', label: 'Amount', cls: 'px-3 text-right' },
+          ]" :key="col.key">
+            <th scope="col" :class="col.cls + ' py-3'" :aria-sort="ariaSort(col.key)" x-show="colShown(col.key)">
+              <button
+                type="button"
+                class="inline-flex cursor-pointer items-center gap-1 text-xs font-medium tracking-wide text-slate-500 uppercase transition-colors duration-200 hover:text-slate-800 motion-reduce:transition-none dark:text-slate-400 dark:hover:text-slate-200"
+                @click="sort(col.key)"
+              >
+                <span x-text="$t(col.label)"></span>
+                <span x-html="$icon(sortIcon(col.key), 'size-3')" aria-hidden="true"></span>
+              </button>
+            </th>
+          </template>
+          <th scope="col" class="px-5 py-3" x-show="colShown('status')" x-text="$t('Status')"></th>
+          <th scope="col" class="px-5 py-3 text-right"><span class="sr-only" x-text="$t('Download')"></span></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100 dark:divide-slate-800/60">
+        <template x-for="inv in pageItems" :key="inv.id">
+          <tr class="transition-colors duration-200 hover:bg-slate-50 motion-reduce:transition-none dark:hover:bg-slate-800/40">
+            <td class="px-5 py-3.5 font-medium tabular-nums text-slate-800 dark:text-slate-200" x-show="colShown('id')" x-text="inv.id"></td>
+            <td class="whitespace-nowrap px-3 py-3.5 text-slate-500 dark:text-slate-400" x-show="colShown('date')">
+              <time :datetime="inv.date" x-text="fmtDate(inv.date)"></time>
+            </td>
+            <td class="whitespace-nowrap px-3 py-3.5 text-right font-medium tabular-nums text-slate-800 dark:text-slate-200" x-show="colShown('amount')" x-text="fmt(inv.amount, 'currency')"></td>
+            <td class="px-5 py-3.5" x-show="colShown('status')">
+              <span
+                class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize"
+                :class="badge(statusVariant(inv.status))"
+                x-text="$t(inv.status)"
+              ></span>
+            </td>
+            <td class="px-5 py-3.5 text-right">
+              <!-- WCAG: icon-only button carries an accessible name -->
+              <button
+                type="button"
+                class="rounded-lg p-2 text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                :aria-label="$t('downloadInvoice', { id: inv.id })"
+                @click="invoiceDownload(inv)"
+              >
+                <span x-html="$icon('download', 'size-4', 'regular')" aria-hidden="true"></span>
+              </button>
+            </td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+  </div>
+  {{> components/pagination}}
+</section>

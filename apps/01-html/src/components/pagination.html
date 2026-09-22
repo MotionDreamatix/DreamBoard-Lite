@@ -1,0 +1,58 @@
+<!-- Pagination footer — include inside an x-data="paginated(itemsFn, perPage)" scope.
+     WCAG: <nav aria-label>, current page exposed via aria-current, prev/next disabled
+     states on the first/last page. -->
+<div
+  x-show="pages > 1"
+  x-cloak
+  class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-5 py-3 dark:border-slate-800"
+>
+  <p class="text-xs text-slate-500 dark:text-slate-400">
+    <span x-text="$t('showing')"></span>
+    <span class="font-medium tabular-nums text-slate-700 dark:text-slate-200" x-text="from"></span>–<span
+      class="font-medium tabular-nums text-slate-700 dark:text-slate-200"
+      x-text="to"
+    ></span>
+    <span x-text="$t('of')"></span> <span class="font-medium tabular-nums text-slate-700 dark:text-slate-200" x-text="items.length"></span>
+  </p>
+  <nav class="flex items-center gap-1" :aria-label="$t('pagination')">
+    <button
+      type="button"
+      class="btn btn-ghost size-8 cursor-pointer rounded-lg p-0"
+      :disabled="page <= 1"
+      :class="page <= 1 && 'cursor-not-allowed opacity-40'"
+      :aria-label="$t('prevPage')"
+      @click="goto(page - 1)"
+    >
+      <span x-html="$icon('chevronLeft', 'size-4', 'regular')" aria-hidden="true"></span>
+    </button>
+    <template x-for="(n, i) in pageWindow()" :key="i">
+      <span>
+        <template x-if="n === '…'">
+          <span class="px-2 text-xs text-slate-400 dark:text-slate-500" aria-hidden="true">…</span>
+        </template>
+        <template x-if="n !== '…'">
+          <button
+            type="button"
+            class="size-8 cursor-pointer rounded-lg text-xs font-semibold tabular-nums transition-colors duration-200 motion-reduce:transition-none"
+            :class="page === n
+              ? 'bg-primary-600 text-white'
+              : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800'"
+            :aria-current="page === n ? 'page' : null"
+            @click="goto(n)"
+            x-text="n"
+          ></button>
+        </template>
+      </span>
+    </template>
+    <button
+      type="button"
+      class="btn btn-ghost size-8 cursor-pointer rounded-lg p-0"
+      :disabled="page >= pages"
+      :class="page >= pages && 'cursor-not-allowed opacity-40'"
+      :aria-label="$t('nextPage')"
+      @click="goto(page + 1)"
+    >
+      <span x-html="$icon('chevronRight', 'size-4', 'regular')" aria-hidden="true"></span>
+    </button>
+  </nav>
+</div>

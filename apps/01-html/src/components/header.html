@@ -1,0 +1,346 @@
+<header
+  class="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200/60 bg-white/85 px-4 backdrop-blur-lg backdrop-saturate-120 sm:px-6 lg:px-8 print:hidden dark:border-slate-800/60 dark:bg-slate-900/80"
+>
+  <!-- Mobile sidebar trigger -->
+  <button
+    type="button"
+    class="rounded-lg p-2 text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-800 lg:hidden dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+    :aria-label="$t('openSidebar')"
+    aria-controls="sidebar"
+    :aria-expanded="$store.sidebar.open"
+    @click="$store.sidebar.open = true"
+  >
+    <span x-html="$icon('menu', 'size-5', 'regular')"></span>
+  </button>
+
+  <!-- Command palette trigger — ⌘K / Ctrl+K also opens it globally -->
+  <button
+    type="button"
+    class="input hidden cursor-pointer items-center gap-2 text-left text-slate-500 sm:flex sm:max-w-xs sm:flex-1 dark:text-slate-400"
+    aria-haspopup="dialog"
+    @click="$store.palette.show($event)"
+  >
+    <span x-html="$icon('search', 'size-4')" aria-hidden="true"></span>
+    <span class="flex-1" x-text="$t('searchPlaceholder')"></span>
+    <kbd class="rounded border border-slate-300 px-1.5 py-0.5 text-[10px] font-semibold dark:border-slate-700">⌘K</kbd>
+  </button>
+
+  <div class="ml-auto flex items-center gap-1.5 sm:gap-2">
+    <!-- Palette trigger (mobile — the field above is sm+ only) -->
+    <button
+      type="button"
+      class="rounded-lg p-2.5 text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-800 sm:hidden dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+      :aria-label="$t('openPalette')"
+      aria-haspopup="dialog"
+      @click="$store.palette.show($event)"
+    >
+      <span x-html="$icon('search', 'size-5', 'regular')" aria-hidden="true"></span>
+    </button>
+
+    <!-- Language switcher — swaps window.i18n dictionaries via the i18n store -->
+    <div class="relative" x-data="dropdown">
+      <button
+        type="button"
+        x-ref="trigger"
+        class="rounded-lg p-2.5 text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+        aria-haspopup="true"
+        :aria-expanded="open"
+        aria-controls="menu-lang"
+        :aria-label="$t('languageLabel')"
+        @click="toggle()"
+        @keydown="onTriggerKeydown"
+      >
+        <span x-html="$icon('translate', 'size-5', 'regular')" aria-hidden="true"></span>
+      </button>
+      <div
+        x-ref="menu"
+        id="menu-lang"
+        role="menu"
+        :aria-label="$t('languageMenu')"
+        x-show="open"
+        x-cloak
+        x-transition.origin.top.right
+        @click.outside="close(false)"
+        @keydown="onMenuKeydown"
+        class="menu-panel absolute right-0 mt-2 w-max min-w-44 max-w-[calc(100vw-2rem)] space-y-0.5 overflow-hidden p-1.5"
+      >
+        <template x-for="l in $store.i18n.locales" :key="l.code">
+          <button
+            type="button"
+            role="menuitemradio"
+            :aria-checked="$store.i18n.locale === l.code"
+            class="menu-item w-full rounded-[10px]"
+            :class="$store.i18n.locale === l.code && 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'"
+            @click="$store.i18n.set(l.code); close()"
+          >
+            <span class="shrink-0" x-html="l.flag"></span>
+            <span class="min-w-0 flex-1 truncate" x-text="$t(l.label)"></span>
+            <span
+              x-show="$store.i18n.locale === l.code"
+              class="shrink-0 text-primary-600 dark:text-primary-400"
+              x-html="$icon('checkPlain', 'size-3.5', 'bold')"
+              aria-hidden="true"
+            ></span>
+          </button>
+        </template>
+      </div>
+    </div>
+
+    <!-- Accent color picker — switches the --color-primary-* scale -->
+    <div class="relative" x-data="dropdown">
+      <button
+        type="button"
+        x-ref="trigger"
+        class="rounded-lg p-2.5 text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+        aria-haspopup="true"
+        :aria-expanded="open"
+        aria-controls="menu-accent"
+        :aria-label="$t('accentLabel')"
+        @click="toggle()"
+        @keydown="onTriggerKeydown"
+      >
+        <span x-html="$icon('palette', 'size-5', 'regular')" aria-hidden="true"></span>
+      </button>
+      <div
+        x-ref="menu"
+        id="menu-accent"
+        role="menu"
+        :aria-label="$t('accentMenuLabel')"
+        x-show="open"
+        x-cloak
+        x-transition.origin.top.right
+        @click.outside="close(false)"
+        @keydown="onMenuKeydown"
+        class="menu-panel absolute right-0 mt-2 w-max min-w-64 max-w-[calc(100vw-2rem)] space-y-0.5 overflow-hidden p-1.5"
+      >
+        <template x-for="a in d.ui.accents" :key="a.key">
+          <button
+            type="button"
+            role="menuitemradio"
+            :aria-checked="$store.accent.current === a.key"
+            class="menu-item w-full rounded-[10px]"
+            :class="$store.accent.current === a.key && 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'"
+            @click="$store.accent.set(a.key); close()"
+          >
+            <span
+              class="size-4 shrink-0 rounded-full ring-1 ring-slate-900/10 ring-inset dark:ring-white/20"
+              :style="'background-color: ' + a.hex"
+              aria-hidden="true"
+            ></span>
+            <span class="min-w-0 flex-1 truncate" x-text="$t(a.label)"></span>
+            <span
+              x-show="$store.accent.current === a.key"
+              class="shrink-0 text-primary-600 dark:text-primary-400"
+              x-html="$icon('checkPlain', 'size-3.5', 'bold')"
+              aria-hidden="true"
+            ></span>
+          </button>
+        </template>
+        <div class="my-1 border-t border-slate-200 dark:border-slate-800" role="separator" aria-hidden="true"></div>
+        <!-- Custom accent: native color picker + hex field. Arrow keys keep
+             caret behavior inside the inputs (stopped before menu nav). -->
+        <div
+          class="px-3 py-1.5"
+          role="group"
+          :aria-label="$t('customColor')"
+          @keydown="['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Home','End'].includes($event.key) && $event.stopPropagation()"
+        >
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-medium text-slate-600 dark:text-slate-300" x-text="$t('customColor')"></span>
+            <span
+              x-show="$store.accent.isCustom"
+              class="ml-auto shrink-0 text-primary-600 dark:text-primary-400"
+              x-html="$icon('checkPlain', 'size-3.5', 'bold')"
+              aria-hidden="true"
+            ></span>
+          </div>
+          <div class="mt-1.5 flex items-center gap-3">
+            <input
+              type="color"
+              class="color-swatch size-4 shrink-0 cursor-pointer rounded-full ring-1 ring-inset ring-slate-900/10 dark:ring-white/20"
+              :value="$store.accent.customHex"
+              :aria-label="$t('customColorPicker')"
+              @input.debounce.200ms="$store.accent.setCustom($event.target.value)"
+            />
+            <input
+              type="text"
+              class="input min-w-0 flex-1 px-2.5 py-1.5 font-mono text-xs"
+              :value="$store.accent.customHex"
+              maxlength="7"
+              spellcheck="false"
+              autocomplete="off"
+              placeholder="#465fff"
+              :aria-label="$t('customColorHex')"
+              @input.debounce.300ms="$store.accent.setCustom($event.target.value)"
+            />
+          </div>
+        </div>
+
+        <!-- Density toggle — shrinks the rem base so the UI tightens -->
+        <div class="mx-1.5 my-1 border-t border-slate-200/70 dark:border-slate-700/60" role="separator"></div>
+        <button
+          type="button"
+          role="menuitemcheckbox"
+          :aria-checked="$store.density.compact"
+          class="menu-item w-full rounded-[10px]"
+          @click="$store.density.toggle()"
+        >
+          <span
+            class="shrink-0 text-slate-400 dark:text-slate-500"
+            x-html="$icon('rows', 'size-4', 'regular')"
+            aria-hidden="true"
+          ></span>
+          <span class="min-w-0 flex-1 truncate" x-text="$t('densityToggle')"></span>
+          <span
+            class="flex size-4 shrink-0 items-center justify-center rounded-[5px] border transition-colors duration-150"
+            :class="$store.density.compact
+              ? 'border-primary-600 bg-primary-600 text-white dark:border-primary-400 dark:bg-primary-400 dark:text-slate-950'
+              : 'border-slate-300 text-transparent dark:border-slate-600'"
+            aria-hidden="true"
+          >
+            <span x-html="$icon('checkPlain', 'size-3', 'bold')"></span>
+          </span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Dark mode toggle — WCAG: binary state exposed via aria-pressed -->
+    <button
+      type="button"
+      class="rounded-lg p-2.5 text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+      :aria-pressed="$store.darkMode.on"
+      :aria-label="$store.darkMode.on ? $t('themeToLight') : $t('themeToDark')"
+      @click="$store.darkMode.toggle()"
+    >
+      <span x-show="!$store.darkMode.on" x-html="$icon('moon', 'size-5', 'regular')"></span>
+      <span x-show="$store.darkMode.on" x-cloak x-html="$icon('sun', 'size-5', 'regular')"></span>
+    </button>
+
+    <!-- Notifications dropdown (ARIA menu button pattern) -->
+    <div class="relative" x-data="dropdown">
+      <button
+        type="button"
+        x-ref="trigger"
+        class="relative rounded-lg p-2.5 text-slate-500 transition-colors duration-200 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+        aria-haspopup="true"
+        :aria-expanded="open"
+        aria-controls="menu-notifications"
+        :aria-label="$t('notifications') + (unreadCount() ? $t('unreadSuffix', { n: unreadCount() }) : '')"
+        @click="toggle()"
+        @keydown="onTriggerKeydown"
+      >
+        <span x-html="$icon('bell', 'size-5', 'regular')"></span>
+        <!-- Unread indicator — visual only; count is in the aria-label -->
+        <span
+          x-show="unreadCount()"
+          x-cloak
+          aria-hidden="true"
+          class="absolute right-2 top-2 flex size-2 rounded-full bg-rose-500 ring-2 ring-white dark:ring-slate-900"
+        ></span>
+      </button>
+
+      <div
+        x-ref="menu"
+        id="menu-notifications"
+        role="menu"
+        :aria-label="$t('notifications')"
+        x-show="open"
+        x-cloak
+        x-transition.origin.top.right
+        @click.outside="close(false)"
+        @keydown="onMenuKeydown"
+        class="menu-panel absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] overflow-hidden p-0"
+      >
+        <div class="flex items-center justify-between border-b border-slate-200/60 px-4 py-3 dark:border-slate-800/60">
+          <p class="text-sm font-semibold text-slate-800 dark:text-slate-100" x-text="$t('notifications')"></p>
+          <a
+            href="notifications.html"
+            role="menuitem"
+            class="rounded-full bg-primary-50 px-2 py-0.5 text-xs font-semibold tabular-nums text-primary-700 dark:bg-primary-500/10 dark:text-primary-300"
+            x-text="$t('notifNew', { n: unreadCount() })"
+            @click="close(false)"
+          ></a>
+        </div>
+        <ul class="max-h-80 overflow-y-auto p-1.5">
+          <template x-for="n in d.notifications" :key="n.id">
+            <li>
+              <a
+                :href="'#notification-' + n.id"
+                role="menuitem"
+                class="flex items-start gap-3 rounded-[10px] px-3 py-2.5 transition-colors duration-200 hover:bg-slate-100 dark:hover:bg-slate-800/60"
+                @click="close(false)"
+              >
+                <span
+                  class="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                  x-html="$icon(n.icon, 'size-4')"
+                ></span>
+                <span class="min-w-0">
+                  <span class="flex items-center gap-2">
+                    <span class="truncate text-sm font-medium text-slate-800 dark:text-slate-100" x-text="$t(n.title)"></span>
+                    <span x-show="n.unread" class="size-1.5 shrink-0 rounded-full bg-primary-500" aria-hidden="true"></span>
+                  </span>
+                  <span class="mt-0.5 block truncate text-xs text-slate-500 dark:text-slate-400" x-text="$t(n.body)"></span>
+                  <span class="mt-1 block text-xs text-slate-500 dark:text-slate-400" x-text="$t(n.time)"></span>
+                </span>
+              </a>
+            </li>
+          </template>
+        </ul>
+      </div>
+    </div>
+
+    <!-- User dropdown -->
+    <div class="relative" x-data="dropdown">
+      <button
+        type="button"
+        x-ref="trigger"
+        class="flex items-center gap-2.5 rounded-lg p-1.5 pr-2 transition-colors duration-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+        aria-haspopup="true"
+        :aria-expanded="open"
+        aria-controls="menu-user"
+        @click="toggle()"
+        @keydown="onTriggerKeydown"
+      >
+        <span
+          class="relative flex size-9 items-center justify-center overflow-hidden rounded-full bg-primary-100 text-xs font-bold text-primary-700 dark:bg-primary-500/15 dark:text-primary-300"
+          aria-hidden="true"
+        >
+          <span x-show="!d.user.photo" x-text="initials(d.user.name)"></span>
+          <img x-show="d.user.photo" x-cloak :src="d.user.photo" alt="" class="absolute inset-0 size-full object-cover" />
+        </span>
+        <span class="hidden text-left sm:block">
+          <span class="block text-sm font-semibold leading-tight text-slate-800 dark:text-slate-100" x-text="d.user.name"></span>
+          <span class="block text-xs leading-tight text-slate-500 dark:text-slate-400" x-text="$t(d.user.role)"></span>
+        </span>
+        <span class="hidden text-slate-400 sm:block" x-html="$icon('chevronDown', 'size-4', 'regular')" aria-hidden="true"></span>
+        <span class="sr-only" x-text="$t('openUserMenu')"></span>
+      </button>
+
+      <div
+        x-ref="menu"
+        id="menu-user"
+        role="menu"
+        :aria-label="$t('userMenuLabel')"
+        x-show="open"
+        x-cloak
+        x-transition.origin.top.right
+        @click.outside="close(false)"
+        @keydown="onMenuKeydown"
+        class="menu-panel absolute right-0 mt-2 w-max min-w-56 max-w-[calc(100vw-2rem)] space-y-0.5 p-1.5"
+      >
+        <template x-for="entry in d.userMenu" :key="entry.label">
+          <a
+            :href="entry.href"
+            role="menuitem"
+            class="menu-item rounded-[10px]"
+            :class="entry.label === 'Sign out' && 'text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:text-rose-400 dark:hover:bg-rose-500/10 dark:hover:text-rose-300'"
+            @click="close(false)"
+          >
+            <span x-html="$icon(entry.icon, 'size-4')" class="shrink-0 opacity-70"></span>
+            <span x-text="$t(entry.label)"></span>
+          </a>
+        </template>
+      </div>
+    </div>
+  </div>
+</header>

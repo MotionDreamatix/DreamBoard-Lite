@@ -1,0 +1,48 @@
+<!-- Dotted world map with country markers — renders window.worldMap's
+     land dot grid as ONE <path> (round-capped subpaths = dots) and the
+     `countries` scope var ([{ name, code, lon, lat, users, share }]) as
+     pulsing markers via x-html — <template> is not honored inside <svg>,
+     so no x-for can live there. The list below carries the data
+     accessibly; `mapLimit` caps it (default 5).
+     Include via x-data="{ countries: …, ...worldMapView() }". -->
+<svg
+  viewBox="0 0 120 60"
+  class="w-full text-primary-600 dark:text-primary-400"
+  role="img"
+  :aria-label="$t('usersByCountryAria')"
+>
+  <path
+    :d="worldDotsPath()"
+    fill="none"
+    stroke-width="1"
+    stroke-linecap="round"
+    class="stroke-slate-300 dark:stroke-slate-700"
+  ></path>
+  <g x-html="worldMarkers()"></g>
+</svg>
+<!-- Legend rows mirror the marker: the pulsing primary dot ties each
+     entry to its map marker, the share bar makes proportions readable
+     (same pattern as the user-agents list). -->
+<ul class="mt-3 space-y-3">
+  <template x-for="c in countries.slice(0, typeof mapLimit === 'undefined' ? 5 : mapLimit)" :key="c.code">
+    <li>
+      <div class="flex items-center gap-2.5 text-sm">
+        <span class="relative flex size-2 shrink-0" aria-hidden="true">
+          <span class="absolute inline-flex size-full animate-ping rounded-full bg-primary-400 opacity-75"></span>
+          <span class="relative inline-flex size-2 rounded-full bg-primary-500"></span>
+        </span>
+        <span class="shrink-0" x-html="$store.i18n.flags[c.code]"></span>
+        <span class="min-w-0 flex-1 truncate font-medium text-slate-700 dark:text-slate-200" x-text="$t(c.name)"></span>
+        <span class="shrink-0 text-sm font-semibold tabular-nums text-slate-900 dark:text-white" x-text="fmt(c.users)"></span>
+        <span class="w-10 shrink-0 text-right text-xs tabular-nums text-slate-500 dark:text-slate-400" x-text="c.share + '%'"></span>
+      </div>
+      <div
+        class="mt-1.5 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800"
+        role="img"
+        :aria-label="$t('countryShareAria', { name: $t(c.name), share: c.share })"
+      >
+        <div class="h-full rounded-full bg-primary-500" :style="`width:${c.share}%`"></div>
+      </div>
+    </li>
+  </template>
+</ul>

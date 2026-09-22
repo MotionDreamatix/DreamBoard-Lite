@@ -1,0 +1,116 @@
+{{@layout "base"}}
+{{@var title "Order"}}
+
+<!-- Detail template — resolves ?id= against d.pages.orders.items.
+     Shows buyers the record-detail pattern: breadcrumbs, description
+     list, status badge, activity timeline, and a not-found state. -->
+<div x-data="orderDetail">
+  <template x-if="order">
+    <div>
+      {{> components/breadcrumbs}}
+
+      <!-- Heading + status -->
+      <div class="page-head">
+        <div class="flex items-center gap-3">
+          <h1 class="page-title tabular-nums" x-text="order.id"></h1>
+          <span
+            class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium capitalize"
+            :class="badge(statusVariant(order.status))"
+            x-text="$t(order.status)"
+          ></span>
+        </div>
+        <a href="orders.html" class="btn btn-secondary">
+          <span x-html="$icon('chevronLeft', 'size-4', 'regular')" aria-hidden="true"></span>
+          <span x-text="$t('backToOrders')"></span>
+        </a>
+      </div>
+
+      <div class="grid gap-4 xl:grid-cols-3">
+        <!-- Order summary (description list) -->
+        <section class="card p-5 xl:col-span-2" aria-labelledby="order-detail-title">
+          <h2 id="order-detail-title" class="card-title mb-4" x-text="$t('orderDetails')"></h2>
+          <dl class="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+            <div>
+              <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400" x-text="$t('customer')"></dt>
+              <dd class="mt-1.5 flex items-center gap-2.5">
+                <span
+                  class="avatar size-8 text-xs"
+                  x-text="initials(order.customer)"
+                  aria-hidden="true"
+                ></span>
+                <span>
+                  <span class="block text-sm font-medium text-slate-800 dark:text-slate-100" x-text="order.customer"></span>
+                  <span class="block text-xs text-slate-500 dark:text-slate-400" x-text="order.email"></span>
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400" x-text="$t('product')"></dt>
+              <dd class="mt-1.5 text-sm font-medium text-slate-800 dark:text-slate-100">
+                <span x-text="order.product"></span>
+                <span class="tabular-nums text-slate-500 dark:text-slate-400" x-text="'× ' + order.qty"></span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400" x-text="$t('date')"></dt>
+              <dd class="mt-1.5 text-sm text-slate-800 dark:text-slate-100">
+                <time :datetime="order.date" x-text="fmtDate(order.date)"></time>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400" x-text="$t('payment')"></dt>
+              <dd class="mt-1.5 text-sm tabular-nums text-slate-800 dark:text-slate-100" x-text="order.payment"></dd>
+            </div>
+            <div class="sm:col-span-2">
+              <dt class="text-xs font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400" x-text="$t('address')"></dt>
+              <dd class="mt-1.5 text-sm text-slate-800 dark:text-slate-100" x-text="order.address"></dd>
+            </div>
+          </dl>
+          <div class="mt-6 flex items-center justify-between border-t border-slate-200/60 pt-4 dark:border-slate-800/60">
+            <span class="text-sm font-medium text-slate-500 dark:text-slate-400" x-text="$t('amount')"></span>
+            <span class="text-lg font-bold tracking-tight tabular-nums text-slate-900 dark:text-white" x-text="fmt(order.amount, 'currency')"></span>
+          </div>
+        </section>
+
+        <!-- Timeline -->
+        <section class="card p-5" aria-labelledby="order-timeline-title">
+          <h2 id="order-timeline-title" class="card-title mb-4" x-text="$t(d.pages.orders.detail.timelineTitle)"></h2>
+          <ol class="space-y-4">
+            <template x-for="(ev, i) in d.pages.orders.detail.timeline" :key="ev.label">
+              <li class="relative flex items-start gap-3">
+                <span
+                  x-show="i < d.pages.orders.detail.timeline.length - 1"
+                  class="absolute left-4 top-9 h-4 w-px bg-slate-200 dark:bg-slate-700"
+                  aria-hidden="true"
+                ></span>
+                <span
+                  class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+                  x-html="$icon(ev.icon, 'size-4')"
+                  aria-hidden="true"
+                ></span>
+                <p class="min-w-0 text-sm font-medium text-slate-800 dark:text-slate-100">
+                  <span x-text="$t(ev.label)"></span>
+                  <span class="mt-0.5 block text-xs tabular-nums text-slate-500 dark:text-slate-400" x-text="ev.time"></span>
+                </p>
+              </li>
+            </template>
+          </ol>
+        </section>
+      </div>
+    </div>
+  </template>
+
+  <!-- Not-found state (bad/missing ?id=) -->
+  <template x-if="!order">
+    <div class="card mx-auto max-w-md p-10 text-center">
+      <span
+        class="mx-auto flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"
+        x-html="$icon('tray', 'size-6')"
+        aria-hidden="true"
+      ></span>
+      <h1 class="mt-4 text-lg font-semibold tracking-tight text-slate-900 dark:text-white" x-text="$t('orderNotFound')"></h1>
+      <p class="mt-1.5 text-sm text-slate-500 dark:text-slate-400" x-text="$t('orderNotFoundHint')"></p>
+      <a href="orders.html" class="btn btn-primary mx-auto mt-6 w-fit" x-text="$t('backToOrders')"></a>
+    </div>
+  </template>
+</div>

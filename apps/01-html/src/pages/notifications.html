@@ -1,0 +1,87 @@
+{{@layout "base"}}
+{{@var title "Notifications"}}
+{{@var phH "d.pages.notificationsPage.heading"}}
+{{@var phS "d.pages.notificationsPage.sub"}}
+
+<!-- Full notifications inbox — shares d.notifications with the header
+     dropdown, so marking items read here clears the badge too. -->
+<div x-data="notificationsPage">
+  <!-- Page heading -->
+  <div class="page-head">
+    {{> components/page-heading}}
+    <button
+      type="button"
+      class="btn btn-secondary"
+      :disabled="!unreadCount()"
+      :class="!unreadCount() && 'cursor-not-allowed opacity-50'"
+      @click="markAll()"
+    >
+      <span x-html="$icon('checks', 'size-4', 'regular')" aria-hidden="true"></span>
+      <span x-text="$t('markAllRead')"></span>
+    </button>
+  </div>
+
+  <section class="card" aria-labelledby="notifications-list-title">
+    <div class="card-head">
+      <h2 id="notifications-list-title" class="sr-only" x-text="$t('notifications')"></h2>
+      <div class="flex flex-wrap gap-1 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" role="group" :aria-label="$t('notifications')">
+        <template x-for="opt in ['all', 'unread']" :key="opt">
+          <button
+            type="button"
+            class="cursor-pointer rounded-lg px-3 py-1.5 text-xs font-semibold capitalize transition-colors motion-reduce:transition-none"
+            :class="filter === opt
+              ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-900 dark:text-white'
+              : 'text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200'"
+            :aria-pressed="filter === opt"
+            @click="filter = opt"
+            x-text="$t(opt === 'all' ? 'filterAll' : 'filterUnread')"
+          ></button>
+        </template>
+      </div>
+    </div>
+
+    <ul class="divide-y divide-slate-100 dark:divide-slate-800/60">
+      <template x-for="n in filtered" :key="n.id">
+        <li>
+          <button
+            type="button"
+            class="flex w-full items-start gap-3 px-5 py-4 text-left transition-colors duration-200 hover:bg-slate-50 motion-reduce:transition-none dark:hover:bg-slate-800/40"
+            @click="markRead(n)"
+          >
+            <span
+              class="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg"
+              :class="n.unread
+                ? 'bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300'
+                : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'"
+              x-html="$icon(n.icon, 'size-4')"
+              aria-hidden="true"
+            ></span>
+            <span class="min-w-0 flex-1">
+              <span class="flex items-center gap-2">
+                <span
+                  class="truncate text-sm"
+                  :class="n.unread ? 'font-semibold text-slate-900 dark:text-white' : 'font-medium text-slate-700 dark:text-slate-300'"
+                  x-text="$t(n.title)"
+                ></span>
+                <span x-show="n.unread" class="size-1.5 shrink-0 rounded-full bg-primary-500" aria-hidden="true"></span>
+              </span>
+              <span class="mt-0.5 block text-sm text-slate-500 dark:text-slate-400" x-text="$t(n.body)"></span>
+              <span class="mt-1 block text-xs text-slate-500 dark:text-slate-400" x-text="$t(n.time)"></span>
+            </span>
+            <span class="sr-only" x-show="n.unread" x-text="$t('filterUnread')"></span>
+          </button>
+        </li>
+      </template>
+    </ul>
+
+    <!-- Empty state -->
+    <div x-show="!filtered.length" x-cloak class="px-5 py-12 text-center" role="status">
+      <span
+        class="mx-auto flex size-10 items-center justify-center rounded-xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500"
+        x-html="$icon('tray', 'size-5')"
+        aria-hidden="true"
+      ></span>
+      <p class="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-200" x-text="$t('noNotifications')"></p>
+    </div>
+  </section>
+</div>

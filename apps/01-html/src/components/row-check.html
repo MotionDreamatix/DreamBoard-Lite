@@ -1,0 +1,14 @@
+<!-- Row selection cell — include inside `x-for="row in pageItems"`
+     within an x-data="paginated(...)" scope (binds `row`). -->
+<td class="sticky-col px-5 py-3.5">
+  <label class="flex cursor-pointer items-center">
+    <input
+      type="checkbox"
+      class="peer sr-only"
+      :aria-label="$t('selectRowAria', { id: row.id })"
+      :checked="isSel(row.id)"
+      @change="toggleSel(row.id)"
+    />
+    <span class="check" aria-hidden="true" x-html="$icon('checkPlain', 'size-3.5', 'bold')"></span>
+  </label>
+</td>

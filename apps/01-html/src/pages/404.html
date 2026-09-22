@@ -1,0 +1,17 @@
+{{@layout "blank"}}
+{{@var title "Page not found"}}
+
+<div class="w-full max-w-sm text-center">
+  <span
+    class="mx-auto flex size-14 items-center justify-center rounded-2xl bg-primary-50 text-primary-600 dark:bg-primary-500/10 dark:text-primary-300"
+    x-html="$icon('search', 'size-7')"
+    aria-hidden="true"
+  ></span>
+  <p class="mt-5 text-7xl font-bold tracking-tight text-primary-600 dark:text-primary-400">404</p>
+  <h1 class="mt-4 auth-title" x-text="$t(d.pages.auth.notFound.heading)"></h1>
+  <p class="mt-2 text-sm leading-relaxed text-slate-500 dark:text-slate-400" x-text="$t(d.pages.auth.notFound.sub)"></p>
+  <a href="index.html" class="btn btn-primary mt-6" x-text="$t('Back to dashboard')"></a>
+  <p class="mt-8 text-xs text-slate-500 dark:text-slate-400">
+    {{> components/brand-note}}
+  </p>
+</div>

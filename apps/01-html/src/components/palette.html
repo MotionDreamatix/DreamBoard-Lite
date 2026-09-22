@@ -1,0 +1,77 @@
+<!-- Command palette — ARIA combobox pattern: input owns a listbox,
+     aria-activedescendant tracks the highlighted option, Arrow/Home/End
+     keys move, Enter navigates, Escape closes and refocuses the trigger. -->
+<template x-teleport="body">
+  <div
+    x-show="$store.palette.open"
+    x-cloak
+    class="fixed inset-0 z-90 flex items-start justify-center p-4 pt-24 sm:pt-[15vh]"
+    role="dialog"
+    aria-modal="true"
+    :aria-label="$t('paletteLabel')"
+  >
+    <div
+      x-show="$store.palette.open"
+      x-transition.opacity
+      class="absolute inset-0 bg-slate-900/60"
+      aria-hidden="true"
+      @click="$store.palette.hide()"
+    ></div>
+
+    <div
+      x-show="$store.palette.open"
+      x-transition:enter="transition ease-out duration-150 motion-reduce:duration-0"
+      x-transition:enter-start="scale-[0.98] opacity-0"
+      x-transition:enter-end="scale-100 opacity-100"
+      x-trap.noscroll="$store.palette.open"
+      class="menu-panel relative w-full max-w-lg overflow-hidden"
+      x-init="$watch('$store.palette.open', v => v && $nextTick(() => $refs.input?.focus()))"
+    >
+      <div class="flex items-center gap-2.5 border-b border-slate-200 px-4 dark:border-slate-800">
+        <span class="shrink-0 text-slate-400" x-html="$icon('search', 'size-4')" aria-hidden="true"></span>
+        <input
+          x-ref="input"
+          type="text"
+          class="w-full bg-transparent py-3.5 text-sm text-slate-900 outline-none placeholder-slate-400 dark:text-white"
+          :placeholder="$t('palettePlaceholder')"
+          role="combobox"
+          aria-expanded="true"
+          aria-controls="palette-list"
+          :aria-activedescendant="$store.palette.results.length ? 'palette-opt-' + $store.palette.active : null"
+          x-model="$store.palette.query"
+          @keydown="$store.palette.onKey($event)"
+        />
+        <kbd class="shrink-0 rounded border border-slate-300 px-1.5 py-0.5 text-[10px] font-semibold text-slate-500 dark:border-slate-700 dark:text-slate-400">ESC</kbd>
+      </div>
+
+      <!-- reset highlight whenever the query changes -->
+      <div x-effect="void ($store.palette.query, $store.palette.active = 0)">
+        <ul id="palette-list" role="listbox" :aria-label="$t('paletteListLabel')" class="max-h-72 overflow-y-auto p-1.5">
+          <template x-for="(c, i) in $store.palette.results" :key="c.href">
+            <li
+              :id="'palette-opt-' + i"
+              role="option"
+              :aria-selected="$store.palette.active === i"
+              class="menu-item rounded-[10px] cursor-pointer"
+              :class="$store.palette.active === i && 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white'"
+              @click="$store.palette.go(c)"
+              @mouseenter="$store.palette.active = i"
+            >
+              <span class="shrink-0 text-slate-400" x-html="$icon(c.icon, 'size-4')" aria-hidden="true"></span>
+              <span class="min-w-0 flex-1 truncate" x-text="$t(c.label)"></span>
+              <span class="shrink-0 text-xs text-slate-400 dark:text-slate-500" x-text="$t(c.group)"></span>
+            </li>
+          </template>
+          <li x-show="!$store.palette.results.length" class="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400" x-text="$t('noResults', { q: $store.palette.query })">
+          </li>
+        </ul>
+      </div>
+
+      <div class="flex items-center gap-4 border-t border-slate-200 px-4 py-2.5 text-[11px] text-slate-500 dark:border-slate-800 dark:text-slate-400">
+        <span class="flex items-center gap-1"><kbd class="rounded border border-slate-300 px-1 dark:border-slate-700">↑↓</kbd> <span x-text="$t('hintNavigate')"></span></span>
+        <span class="flex items-center gap-1"><kbd class="rounded border border-slate-300 px-1 dark:border-slate-700">↵</kbd> <span x-text="$t('hintOpen')"></span></span>
+        <span class="flex items-center gap-1"><kbd class="rounded border border-slate-300 px-1 dark:border-slate-700">esc</kbd> <span x-text="$t('hintClose')"></span></span>
+      </div>
+    </div>
+  </div>
+</template>

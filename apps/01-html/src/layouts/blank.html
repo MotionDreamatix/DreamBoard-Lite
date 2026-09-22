@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="{{lang}}" class="h-full">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="DreamBoard — accessible dashboard UI kit (HTML + Tailwind CSS + Alpine.js)" />
+    <title>{{title}} · DreamBoard</title>
+    <meta name="theme-color" content="#f8fafc" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23465fff'/%3E%3Cpath d='M9 9h6v6H9zM17 9h6v6H9zM9 17h6v6H9zM17 17h6v6H9z' fill='white'/%3E%3C/svg%3E"
+    />
+
+    <!-- Apply saved/system theme before first paint (avoids FOUC). -->
+    <script>
+      (function () {
+        var dark = false;
+        try {
+          dark = localStorage.theme
+            ? localStorage.theme === "dark"
+            : window.matchMedia("(prefers-color-scheme: dark)").matches;
+        } catch (e) {}
+        document.documentElement.classList.toggle("dark", dark);
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute("content", dark ? "#0f172a" : "#f8fafc");
+        try {
+          if (localStorage.accent) document.documentElement.dataset.accent = localStorage.accent;
+          if (localStorage.accent === "custom" && localStorage.accentScale) {
+            var sc = JSON.parse(localStorage.accentScale);
+            for (var s in sc)
+              document.documentElement.style.setProperty("--color-primary-" + s, sc[s]);
+            if (localStorage.accentFg)
+              document.documentElement.style.setProperty("--color-primary-foreground", localStorage.accentFg);
+          }
+          if (localStorage.density) document.documentElement.dataset.density = localStorage.density;
+          if (localStorage.lang) document.documentElement.lang = localStorage.lang;
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="stylesheet" href="assets/css/main.css" />
+
+    <!-- Same script order as base layout: data → icons → vendor → app → alpine. -->
+    <script defer src="data/mockData.js"></script>
+    <script defer src="data/i18n.js"></script>
+    <script defer src="assets/js/icons.js"></script>
+    <!-- apexcharts.min.js loads lazily on first chart mount (app.js ensureApex) -->
+    <script defer src="assets/vendor/focus.min.js"></script>
+    <script defer src="assets/js/app.js"></script>
+    <!-- Alpine boots once the data layer is ready — `data/mockData.js` is
+         the swap point: replace it with a fetch() to your API and dispatch
+         `mockdata:ready` after assigning window.mockData. -->
+    <script>
+      (() => {
+        const inject = () => {
+          const s = document.createElement("script");
+          s.src = "assets/vendor/alpine.min.js";
+          document.head.append(s);
+        };
+        // Deferred scripts (incl. app.js' alpine:init listeners) must run
+        // before Alpine evaluates — inject at DOMContentLoaded, or right
+        // away when data arrives after full load (async API swap).
+        const boot = () =>
+          document.readyState === "complete"
+            ? inject()
+            : document.addEventListener("DOMContentLoaded", inject, { once: true });
+        if (window.mockData) boot();
+        else window.addEventListener("mockdata:ready", boot, { once: true });
+      })();
+    </script>
+  </head>
+
+  <!-- Bare layout for signed-out / auth-style screens: no app shell, content centered. -->
+  <body class="min-h-full" data-public>
+    <main
+      id="main-content"
+      tabindex="-1"
+      x-data="page"
+      x-cloak
+      class="animate-page-enter flex min-h-screen items-center justify-center px-4 py-10 motion-reduce:animate-none"
+    >
+      <!-- WCAG 2.2 AA: skip link — inside x-data so its label localizes via $t -->
+      <a
+        href="#main-content"
+        class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-100 focus:rounded-lg focus:bg-primary-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white print:hidden"
+        x-text="$t('skipLink')"
+      ></a>
+      {{content}}
+    </main>
+  </body>
+</html>

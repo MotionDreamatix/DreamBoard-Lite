@@ -1,0 +1,19 @@
+{
+  "name": "dreamboard-lite",
+  "private": true,
+  "version": "1.1.0",
+  "description": "DreamBoard Lite — free Tailwind CSS + Alpine.js admin dashboard (MIT)",
+  "workspaces": [
+    "apps/01-html",
+    "packages/tailwind-config"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/01-html",
+    "build": "npm run build --workspace=apps/01-html",
+    "audit": "npm run audit --workspace=apps/01-html"
+  },
+  "devDependencies": {
+    "@axe-core/puppeteer": "^4.13.0",
+    "puppeteer-core": "^25.11.0"
+  }
+}
