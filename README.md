@@ -1,4 +1,8 @@
-# DreamBoard Lite
+<div align="center">
+
+<a href="https://v1.dreamboard.motiondreamatix.de/html/">
+  <img src="docs/hero.png" alt="DreamBoard Lite — Tailwind CSS + Alpine.js admin dashboard, shown in dark mode" width="640">
+</a>
 
 **The free edition of DreamBoard** — a production-grade admin dashboard
 UI kit built with **Tailwind CSS v4 + Alpine.js**. Lite ships
@@ -10,6 +14,8 @@ forever. MIT licensed.
 [Full kit on Gumroad](https://motiondreamatix.gumroad.com/l/dreamboard) ·
 [Portfolio](https://motiondreamatix.de/portfolio/18/dreamboard-multi-stack-ui-kit) ·
 [Blog: the story behind it](https://motiondreamatix.de/blog/gumroad-shop-eroeffnung-dreamboard)
+
+</div>
 
 ## What's inside
 
