@@ -1,19 +1,39 @@
 <div align="center">
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://motiondreamatix.de/assets/logos/mdx/svg/wortmarke-white.svg">
+  <img src="https://motiondreamatix.de/assets/logos/mdx/svg/wortmarke.svg" alt="MotionDreamatix" width="290">
+</picture>
+
+<p></p>
+
+<h1>DreamBoard Lite</h1>
+
+<p>
+  <img src="https://img.shields.io/badge/license-MIT-6366f1" alt="MIT license">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?logo=tailwindcss&logoColor=white" alt="Tailwind CSS v4">
+  <img src="https://img.shields.io/badge/Alpine.js-3.x-8bc0d0?logo=alpinedotjs&logoColor=white" alt="Alpine.js">
+  <img src="https://img.shields.io/badge/a11y-WCAG_2.2_AA-22c55e" alt="WCAG 2.2 AA">
+  <img src="https://img.shields.io/badge/i18n-EN_%2F_DE-8b5cf6" alt="i18n EN / DE">
+</p>
+
+<p>
+  <strong>The free edition of DreamBoard</strong> — a production-grade
+  admin dashboard UI kit. Lite ships 16 hand-picked pages from
+  the full 56-page kit so you can evaluate the real codebase —
+  or ship a small admin for free, forever.
+</p>
+
+<p>
+  <a href="https://v1.dreamboard.motiondreamatix.de/html/">Live demo</a> ·
+  <a href="https://motiondreamatix.gumroad.com/l/dreamboard">Full kit on Gumroad</a> ·
+  <a href="https://motiondreamatix.de/portfolio/18/dreamboard-multi-stack-ui-kit">Portfolio</a> ·
+  <a href="https://motiondreamatix.de/blog/gumroad-shop-eroeffnung-dreamboard">Blog: the story behind it</a>
+</p>
+
 <a href="https://v1.dreamboard.motiondreamatix.de/html/">
-  <img src="docs/hero.png" alt="DreamBoard Lite — Tailwind CSS + Alpine.js admin dashboard, shown in dark mode" width="640">
+  <img src="docs/hero.png" alt="DreamBoard Lite — Tailwind CSS + Alpine.js admin dashboard, shown in dark mode" width="800">
 </a>
-
-**The free edition of DreamBoard** — a production-grade admin dashboard
-UI kit built with **Tailwind CSS v4 + Alpine.js**. Lite ships
-16 hand-picked pages from the full 56-page kit so you
-can evaluate the real codebase — or ship a small admin for free,
-forever. MIT licensed.
-
-[Live demo](https://v1.dreamboard.motiondreamatix.de/html/) ·
-[Full kit on Gumroad](https://motiondreamatix.gumroad.com/l/dreamboard) ·
-[Portfolio](https://motiondreamatix.de/portfolio/18/dreamboard-multi-stack-ui-kit) ·
-[Blog: the story behind it](https://motiondreamatix.de/blog/gumroad-shop-eroeffnung-dreamboard)
 
 </div>
 
